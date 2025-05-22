@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "supabase:types": "supabase gen types typescript --project-id YOUR_PROJECT_ID_HERE > src/types/database.types.ts",
     "prepare": "husky install",
     "test": "vitest run",
     "test:watch": "vitest"

@@ -83,11 +83,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // 보호된 라우트에 대한 인증 체크
-  const protectedRoute = path.startsWith("/profile");
+  // 사용자가 수정할 수 있는 보호된 라우트 목록
+  // 예: const protectedRoutes = ['/profile', '/settings', '/dashboard'];
+  const protectedRoutes = ['/profile']; 
+
+  // 현재 경로가 보호된 라우트인지 확인
+  const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route));
 
   // 인증이 필요한 페이지에 접근 시 로그인이 되어 있지 않으면 로그인 페이지로 리다이렉션
-  if (protectedRoute && !user) {
+  if (isProtectedRoute && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
