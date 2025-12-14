@@ -15,6 +15,18 @@
     "@21st-dev/magic": {
       "command": "bunx",
       "args": ["@21st-dev/magic@latest", "API_KEY=\"{$MAGIC_API_KEY}\""]
+    },
+    "Neon": {
+      "command": "bunx",
+      "args": ["mcp-remote@latest", "https://mcp.neon.tech/mcp"]
+    },
+    "cloudflare-documentation": {
+      "command": "bunx",
+      "args": ["mcp-remote", "https://docs.mcp.cloudflare.com/mcp"]
+    },
+    "cloudflare-bindings": {
+      "command": "bunx",
+      "args": ["mcp-remote", "https://bindings.mcp.cloudflare.com/mcp"]
     }
   }
 }
