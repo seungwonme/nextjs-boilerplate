@@ -20,6 +20,9 @@
     - [FSD 레이어 규칙](#fsd-레이어-규칙)
     - [Next.js App Router와 FSD 통합](#nextjs-app-router와-fsd-통합)
     - [Server Actions 배치](#server-actions-배치)
+    - [FSD 아키텍처 린터 (Steiger)](#fsd-아키텍처-린터-steiger)
+    - [FSD 슬라이스 생성 템플릿](#fsd-슬라이스-생성-템플릿)
+    - [FSD 체크리스트](#fsd-체크리스트)
 - [Package Convention](#package-convention)
   - [Vitest](#vitest)
   - [TailwindCSS](#tailwindcss)
@@ -434,6 +437,125 @@ export async function signIn(formData: FormData) {
   // ...
 }
 ```
+
+#### FSD 아키텍처 린터 (Steiger)
+
+FSD 레이어 간 의존성을 강제하기 위해 [Steiger](https://github.com/feature-sliced/steiger) (FSD 공식 린터)를 사용합니다.
+
+##### 설치
+
+```bash
+pnpm install -D steiger @feature-sliced/steiger-plugin
+```
+
+##### 설정 파일
+
+```typescript
+// steiger.config.ts
+import fsd from "@feature-sliced/steiger-plugin";
+import { defineConfig } from "steiger";
+
+export default defineConfig([
+  ...fsd.configs.recommended,
+  {
+    // Next.js 라우팅 디렉토리는 제외
+    ignores: ["app/**", "pages/**"],
+  },
+]);
+```
+
+##### 실행
+
+```bash
+pnpm lint:fsd  # steiger ./src
+```
+
+##### 주요 규칙
+
+- `fsd/forbidden-imports` - 상위 레이어 import 및 같은 레이어 cross-import 금지
+- `fsd/no-public-api-sidestep` - index.ts를 우회한 내부 모듈 직접 import 금지
+- `fsd/ambiguous-slice-names` - 슬라이스 이름이 세그먼트 이름과 충돌하는 경우 감지
+- `fsd/excessive-slicing` - 과도한 슬라이스 분할 경고
+
+##### Cross-Import 금지
+
+같은 레이어 내 슬라이스 간 직접 import는 금지됩니다:
+
+```typescript
+// ❌ 잘못된 예: features/auth에서 features/payment 직접 import
+// src/features/auth/ui/login-form.tsx
+import { PaymentButton } from '@/features/payment';
+
+// ✅ 올바른 예: 상위 레이어(pages/widgets)에서 조합
+// src/pages/checkout/ui/checkout-page.tsx
+import { LoginForm } from '@/features/auth';
+import { PaymentButton } from '@/features/payment';
+```
+
+##### TypeScript Path Alias 설정
+
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/app/*": ["./src/app/*"],
+      "@/pages/*": ["./src/pages/*"],
+      "@/widgets/*": ["./src/widgets/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/entities/*": ["./src/entities/*"],
+      "@/shared/*": ["./src/shared/*"]
+    }
+  }
+}
+```
+
+#### FSD 슬라이스 생성 템플릿
+
+새 슬라이스를 생성할 때 다음 구조를 따릅니다:
+
+```bash
+# Feature 슬라이스 생성 예시
+mkdir -p src/features/auth/{ui,model,api,lib}
+touch src/features/auth/index.ts
+
+# Entity 슬라이스 생성 예시
+mkdir -p src/entities/user/{ui,model,api}
+touch src/entities/user/index.ts
+
+# Widget 슬라이스 생성 예시
+mkdir -p src/widgets/header/{ui,model}
+touch src/widgets/header/index.ts
+```
+
+##### index.ts (Public API) 템플릿
+
+```typescript
+// src/features/auth/index.ts
+// Public API - 외부에서 접근 가능한 것들만 export
+
+// UI Components
+export { LoginForm } from './ui/login-form';
+export { SignupForm } from './ui/signup-form';
+
+// Model (hooks, stores, types)
+export { useAuth } from './model/use-auth';
+export type { AuthUser, AuthState } from './model/types';
+
+// API (if needed externally)
+export { signIn, signOut } from './api/actions';
+```
+
+#### FSD 체크리스트
+
+새로운 코드 작성 시 확인사항:
+
+- [ ] 올바른 레이어에 코드를 배치했는가?
+- [ ] `index.ts`를 통해서만 외부에 노출하고 있는가?
+- [ ] 상위 레이어에서 하위 레이어만 import하고 있는가?
+- [ ] 같은 레이어의 다른 슬라이스를 직접 import하지 않았는가?
+- [ ] 슬라이스 내부 구조(ui/, model/, api/, lib/)를 올바르게 사용했는가?
 
 ## Package Convention
 
