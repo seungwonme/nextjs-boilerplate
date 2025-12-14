@@ -1,9 +1,7 @@
 "use client";
 
-import { createAuthClient } from "better-auth/react";
+import { createAuthClient } from "@neondatabase/neon-js/auth";
 
-export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_SITE_URL,
-});
-
-export const { signIn, signOut, signUp, useSession } = authClient;
+export const authClient = createAuthClient(
+  process.env.NEXT_PUBLIC_NEON_AUTH_URL!,
+);
