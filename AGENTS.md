@@ -1,69 +1,135 @@
 # Next.js Boilerplate
 
+## Commands
+
+```bash
+pnpm dev              # Dev server (localhost:3000)
+pnpm build            # Production build
+pnpm lint             # Biome lint
+pnpm check            # Biome lint + format + auto-fix
+pnpm lint:fsd         # Steiger FSD architecture lint
+pnpm dlx shadcn@latest add <component>  # Add shadcn/ui component
+```
+
 ## Tech Stack
 
-- Next.js 16.0.10
-- React 19.2.1
-- Tailwind CSS 4
+- Next.js 16, React 19, TypeScript 5
+- Tailwind CSS v4 (config in `globals.css` only)
+- shadcn/ui (New York style)
 - Biome (linter/formatter)
-- TypeScript 5
-
-## Features
-
-### Dark Mode
-
-- `next-themes` 라이브러리 사용
-- Tailwind CSS v4의 `@custom-variant`와 `data-theme` 속성 활용
-- 시스템 테마 자동 감지 지원
-- light/dark/system 3가지 테마 지원
-
-#### 관련 파일
-
-- `src/components/theme-provider.tsx`: ThemeProvider 클라이언트 컴포넌트
-- `src/components/theme-toggle.tsx`: 테마 토글 버튼 컴포넌트
-- `src/app/globals.css`: Tailwind CSS v4 다크 모드 설정
-- `src/app/layout.tsx`: ThemeProvider 적용
-
-#### 사용법
-
-```tsx
-// dark: prefix로 다크 모드 스타일 적용
-<div className="bg-white dark:bg-black text-black dark:text-white">
-  Content
-</div>
-```
+- Steiger (FSD linter)
+- next-themes (dark mode)
 
 ## Architecture (FSD)
 
-이 프로젝트는 [Feature-Sliced Design](https://feature-sliced.design/)을 따릅니다.
-
-### 레이어 구조
+### Layer Structure
 
 ```
+app/                  # Next.js App Router (routing only)
 src/
-├── app/        # FSD App Layer - 프로바이더, 전역 설정
-├── pages/      # FSD Pages Layer - 페이지 컴포넌트 조합
-├── widgets/    # 독립적인 UI 블록 (Header, Footer...)
-├── features/   # 사용자 기능 (auth, checkout...)
-├── entities/   # 비즈니스 엔티티 (user, product...)
-└── shared/     # 공유 리소스 (ui, lib, api...)
+├── app/              # Providers, global config
+├── pages/            # Page composition
+├── widgets/          # Header, Footer, Sidebar
+├── features/         # auth, checkout, search
+├── entities/         # user, product, order
+└── shared/           # ui, lib, api, hooks
 ```
 
-### Import 규칙
+### Import Rules
 
-- **의존성 방향**: `app` → `pages` → `widgets` → `features` → `entities` → `shared`
-- **같은 레이어 내 cross-import 금지**
-- **index.ts를 통해서만 외부 노출**
+```typescript
+// 의존성 방향: app → pages → widgets → features → entities → shared
+// 같은 레이어 내 cross-import 금지
 
-### FSD 린터
+// ✅ Correct - index.ts를 통한 import
+import { UserCard } from '@/entities/user';
+import { Button } from '@/shared/ui';
 
-```bash
-pnpm lint:fsd  # Steiger로 FSD 구조 검사
+// ❌ Wrong - 내부 구조 직접 접근
+import { UserCard } from '@/entities/user/ui/user-card';
 ```
 
-### 코드 작성 시 체크리스트
+### Next.js + FSD Integration
 
-1. 새 기능 추가 시 올바른 레이어에 배치
-2. `index.ts`로 Public API 정의
-3. 상위 → 하위 레이어 방향으로만 import
-4. `.github/CONVENTION.md` 참조
+```typescript
+// app/example/page.tsx
+export { ExamplePage as default } from '@/pages/example';
+
+// src/pages/example/index.ts
+export { ExamplePage } from './ui/example-page';
+
+// src/pages/example/ui/example-page.tsx
+import { Header } from '@/widgets/header';
+import { AuthForm } from '@/features/auth';
+import { Button } from '@/shared/ui';
+```
+
+### Server Actions
+
+```typescript
+// src/features/auth/api/actions.ts
+'use server';
+export async function signIn(formData: FormData) {
+  /* ... */
+}
+
+// 배치 위치:
+// - Feature-specific: src/features/[feature]/api/actions.ts
+// - Entity-specific: src/entities/[entity]/api/actions.ts
+// - Shared: src/shared/api/actions.ts
+```
+
+## Conventions
+
+### Naming
+
+| 대상            | 규칙       | 예시            |
+| --------------- | ---------- | --------------- |
+| 파일명          | kebab-case | `user-card.tsx` |
+| 컴포넌트        | PascalCase | `UserCard`      |
+| 함수/변수       | camelCase  | `handleClick`   |
+| 타입/인터페이스 | PascalCase | `UserProfile`   |
+
+### Components
+
+```typescript
+// Server Component (기본)
+export function UserCard() {
+  /* ... */
+}
+```
+
+```typescript
+// Client Component (상호작용 필요 시)
+// 파일 최상단에 directive 선언 필수
+"use client";
+
+export function InteractiveForm() {
+  /* ... */
+}
+```
+
+### Icons
+
+```typescript
+import { Menu, X } from 'lucide-react'; // 일반 아이콘
+import { FaGithub } from 'react-icons/fa'; // 브랜드/SNS 아이콘
+```
+
+### Dark Mode
+
+```tsx
+<div className="bg-white dark:bg-black text-black dark:text-white">Content</div>
+```
+
+## Key Paths
+
+| 용도           | 경로                               |
+| -------------- | ---------------------------------- |
+| UI 컴포넌트    | `src/shared/ui/`                   |
+| 유틸리티       | `src/shared/lib/`                  |
+| 훅             | `src/shared/hooks/`                |
+| API 클라이언트 | `src/shared/api/`                  |
+| 테마           | `src/shared/ui/theme-provider.tsx` |
+| shadcn 설정    | `components.json`                  |
+| Tailwind 설정  | `app/globals.css`                  |

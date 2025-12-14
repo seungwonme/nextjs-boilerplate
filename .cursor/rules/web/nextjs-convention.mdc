@@ -201,14 +201,65 @@ test('Page', () => {
 });
 ```
 
+### Biome (Linting & Formatting)
+
+- ESLint/Prettier 대신 Biome을 사용합니다.
+- Rust 기반으로 10~100배 빠른 성능을 제공합니다.
+- 설정 파일: `biome.json`
+
+```bash
+# 린트
+pnpm lint
+
+# 포맷팅
+pnpm format
+
+# 린트 + 포맷팅 + 자동 수정
+pnpm check
+```
+
+### Steiger (FSD Linter)
+
+- FSD 공식 린터로 레이어 간 의존성 방향을 강제합니다.
+- 잘못된 cross-import를 자동으로 감지합니다.
+
+```bash
+pnpm lint:fsd
+```
+
+### Lefthook (Git Hooks)
+
+- Biome 공식 권장 Git hooks 도구입니다.
+- Go 기반으로 Husky 대비 빠른 성능을 제공합니다.
+- 설정 파일: `lefthook.yml`
+
 ### TailwindCSS
 
 - 모든 스타일은 TailwindCSS를 사용해야 합니다.
 - TailwindCSS v4 버전을 사용합니다. 그러므로 `tailwind.config.js`, `tailwind.config.ts` 파일은 사용하지 않고 `globals.css` 파일만을 사용합니다.
 
+### Dark Mode
+
+- `next-themes` 라이브러리를 사용합니다.
+- Tailwind CSS v4의 `@custom-variant`와 `data-theme` 속성을 활용합니다.
+- light/dark/system 3가지 테마를 지원합니다.
+
+```css
+/* globals.css - next-themes 연동 */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+```
+
+```tsx
+// 다크 모드 스타일 적용
+<div className="bg-white dark:bg-black text-black dark:text-white">
+  Content
+</div>
+```
+
 ### ShadCN Component
 
 - 모든 UI 컴포넌트는 ShadCN을 사용해야 합니다.
+- New York 스타일을 사용합니다.
 - 컴포넌트 사용 전 설치 여부를 확인해야 합니다: `src/shared/ui` 디렉토리 체크
 - 컴포넌트 설치 명령어를 사용해야 합니다: `pnpm dlx shadcn@latest add [component-name]`
 - `components.json` 설정에서 경로를 FSD 구조에 맞게 설정:
@@ -216,16 +267,49 @@ test('Page', () => {
   {
     "aliases": {
       "components": "@/shared/ui",
-      "utils": "@/shared/lib/utils"
+      "utils": "@/shared/lib/utils",
+      "ui": "@/shared/ui",
+      "lib": "@/shared/lib",
+      "hooks": "@/shared/hooks"
     }
   }
   ```
 
-### lucide-react
+### Icons (lucide-react + react-icons)
 
-- 모든 아이콘은 lucide-react를 사용해야 합니다.
-- 아이콘 임포트 방법: `import { IconName } from 'lucide-react';`
-- 예시: `import { Menu, X } from 'lucide-react';`
+- **lucide-react**: ShadCN 컴포넌트 기본 아이콘으로 사용합니다.
+- **react-icons**: SNS 로고, 브랜드 아이콘 등 lucide에 없는 아이콘 보완용으로 사용합니다.
+
+```tsx
+// lucide-react (일반 아이콘)
+import { Menu, X, Sun, Moon } from 'lucide-react';
+
+// react-icons (브랜드/SNS 아이콘)
+import { FaGithub, FaTwitter } from 'react-icons/fa';
+import { LuMonitor } from 'react-icons/lu';
+```
+
+> **Note**: ShadCN 컴포넌트가 lucide-react를 기본으로 사용하므로 전부 교체하기 어려움. react-icons는 lucide에 없는 아이콘이 필요할 때만 사용.
+
+### Form & Validation
+
+- **react-hook-form**: 비제어 컴포넌트 기반으로 리렌더링을 최소화합니다.
+- **zod**: TypeScript 네이티브 스키마 검증, react-hook-form과 완벽 통합됩니다.
+
+```tsx
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+const form = useForm({
+  resolver: zodResolver(schema),
+});
+```
 
 ### Jotai
 
