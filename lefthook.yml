@@ -1,0 +1,49 @@
+# https://lefthook.dev/
+# lefthook install
+
+pre-commit:
+  parallel: true
+  commands:
+    biome-check:
+      glob: "*.{js,jsx,ts,tsx,json,jsonc}"
+      run: pnpm biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: pnpm tsc --noEmit
+      stage_fixed: false
+
+    # .env 파일 커밋 방지
+    prevent-env:
+      glob: ".env*"
+      exclude: ".env.example"
+      run: |
+        echo -e "\033[31mERROR: .env 파일은 커밋할 수 없습니다. .env.example 파일을 사용하세요.\033[0m"
+        exit 1
+
+    # 후행 공백 제거
+    trailing-whitespace:
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,md,yml,yaml}"
+      run: |
+        for file in {staged_files}; do
+          sed -i '' 's/[[:space:]]*$//' "$file"
+        done
+      stage_fixed: true
+
+    # 병합 충돌 검사
+    check-merge-conflict:
+      run: |
+        if git diff --cached --name-only | xargs grep -l -E "^(<<<<<<<|=======|>>>>>>>)" 2>/dev/null; then
+          echo -e "\033[31mERROR: 병합 충돌 마커가 포함된 파일이 있습니다.\033[0m"
+          exit 1
+        fi
+
+    # 민감한 개인키 검출
+    detect-private-key:
+      run: |
+        PRIVATE_KEY_PATTERN="-----BEGIN (RSA|DSA|EC|OPENSSH|PGP) PRIVATE KEY-----"
+        if git diff --cached --name-only | xargs grep -l -E "$PRIVATE_KEY_PATTERN" 2>/dev/null; then
+          echo -e "\033[31mERROR: 민감한 개인키가 포함된 파일이 있습니다.\033[0m"
+          exit 1
+        fi
