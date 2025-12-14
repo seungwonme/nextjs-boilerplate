@@ -122,6 +122,53 @@ import { FaGithub } from 'react-icons/fa'; // 브랜드/SNS 아이콘
 <div className="bg-white dark:bg-black text-black dark:text-white">Content</div>
 ```
 
+## SEO
+
+### 환경 변수
+
+```bash
+# .env.local
+NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=your-google-verification-code
+```
+
+### 파일 구조
+
+| 파일              | 설명                              |
+| ----------------- | --------------------------------- |
+| `app/layout.tsx`  | 전역 Metadata, Open Graph, 등     |
+| `app/robots.ts`   | 검색엔진 크롤러 규칙              |
+| `app/sitemap.ts`  | 동적 사이트맵 생성                |
+| `app/manifest.ts` | PWA 웹 앱 매니페스트              |
+
+### JSON-LD 구조화 데이터
+
+```typescript
+import { JsonLd, createWebSiteJsonLd, createArticleJsonLd } from '@/shared/lib';
+
+// 페이지에서 사용
+export default function Page() {
+  return (
+    <>
+      <JsonLd data={createWebSiteJsonLd()} />
+      {/* 페이지 컨텐츠 */}
+    </>
+  );
+}
+```
+
+### 페이지별 Metadata
+
+```typescript
+// app/about/page.tsx
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About', // "About | Site Name" 형식으로 출력
+  description: 'About page description',
+};
+```
+
 ## Key Paths
 
 | 용도           | 경로                               |

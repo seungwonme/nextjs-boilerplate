@@ -14,7 +14,8 @@
 6. [Step 5: FSD 아키텍처 적용](#step-5-fsd-아키텍처-적용)
 7. [Step 6: 다크 모드 구현](#step-6-다크-모드-구현)
 8. [Step 7: ShadCN UI 컴포넌트](#step-7-shadcn-ui-컴포넌트)
-9. [향후 확장 계획](#향후-확장-계획)
+9. [Step 8: SEO 설정](#step-8-seo-설정)
+10. [향후 확장 계획](#향후-확장-계획)
 
 ---
 
@@ -214,114 +215,13 @@ rm .prettierrc .prettierignore eslint.config.mjs
 
 ### 3.4 Biome 설정 파일
 
-`biome.json`:
+주요 설정:
 
-```json
-{
-  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
-  },
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "space",
-    "indentWidth": 2,
-    "lineEnding": "lf",
-    "lineWidth": 80,
-    "bracketSpacing": true
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "correctness": {
-        "noUnusedVariables": "error",
-        "useExhaustiveDependencies": "warn",
-        "useHookAtTopLevel": "error",
-        "useJsxKeyInIterable": "error"
-      },
-      "suspicious": {
-        "noExplicitAny": "off"
-      },
-      "a11y": {
-        "useAltText": "warn",
-        "useValidAriaProps": "warn",
-        "useValidAriaValues": "warn"
-      },
-      "performance": {
-        "noImgElement": "warn"
-      },
-      "style": {
-        "noHeadElement": "warn"
-      }
-    }
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "double",
-      "jsxQuoteStyle": "double",
-      "trailingCommas": "all",
-      "semicolons": "always",
-      "arrowParentheses": "always",
-      "bracketSameLine": false
-    }
-  },
-  "css": {
-    "parser": {
-      "cssModules": true,
-      "tailwindDirectives": true
-    },
-    "linter": {
-      "enabled": true
-    }
-  },
-  "overrides": [
-    {
-      "includes": ["*.json"],
-      "formatter": {
-        "lineWidth": 200
-      }
-    },
-    {
-      "includes": ["src/shared/ui/**"],
-      "linter": {
-        "rules": {
-          "a11y": {
-            "useSemanticElements": "off",
-            "useFocusableInteractive": "off",
-            "useKeyWithClickEvents": "off",
-            "useAriaPropsForRole": "off",
-            "noRedundantRoles": "off"
-          },
-          "suspicious": {
-            "noDocumentCookie": "off",
-            "noArrayIndexKey": "off",
-            "noDoubleEquals": "off"
-          },
-          "security": {
-            "noDangerouslySetInnerHtml": "off"
-          },
-          "correctness": {
-            "useExhaustiveDependencies": "off"
-          }
-        }
-      }
-    }
-  ],
-  "assist": {
-    "enabled": true,
-    "actions": {
-      "source": {
-        "organizeImports": "on"
-      }
-    }
-  }
-}
-```
+- `formatter`: space indent, LF line ending, 80 line width
+- `linter`: recommended + React hooks 규칙, `noExplicitAny: off`
+- `overrides`: `src/shared/ui/**`에서 ShadCN 관련 규칙 비활성화
 
-> **Note**: `src/shared/ui/**`에 대한 override 설정은 ShadCN UI 컴포넌트에서 발생하는 린트 오류를 방지합니다. ShadCN은 공식적으로 `role="group"`, `document.cookie`, `dangerouslySetInnerHTML` 등의 패턴을 사용하므로, 해당 폴더에 대해서만 관련 규칙을 비활성화합니다. 직접 작성하는 코드에는 여전히 엄격한 규칙이 적용됩니다.
+> 전체 설정: `biome.json` 참조
 
 ### 3.5 package.json 스크립트 업데이트
 
@@ -356,59 +256,16 @@ pnpm lefthook install
 
 ### 4.2 Lefthook 설정 파일 생성
 
-`lefthook.yml`:
+`pre-commit` 훅 구성:
 
-```yaml
-# https://lefthook.dev/
-# lefthook install
+- `biome-check`: 린팅/포맷팅 자동 수정
+- `typecheck`: TypeScript 타입 체크
+- `prevent-env`: `.env` 파일 커밋 방지 (`.env.example` 제외)
+- `trailing-whitespace`: 후행 공백 제거
+- `check-merge-conflict`: 병합 충돌 마커 검사
+- `detect-private-key`: 개인키 유출 방지
 
-pre-commit:
-  parallel: true
-  commands:
-    biome-check:
-      glob: '*.{js,jsx,ts,tsx,json,jsonc}'
-      run: pnpm biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
-      stage_fixed: true
-
-    typecheck:
-      glob: '*.{ts,tsx}'
-      run: pnpm tsc --noEmit
-      stage_fixed: false
-
-    # .env 파일 커밋 방지
-    prevent-env:
-      glob: '.env*'
-      exclude: '.env.example'
-      run: |
-        echo -e "\033[31mERROR: .env 파일은 커밋할 수 없습니다. .env.example 파일을 사용하세요.\033[0m"
-        exit 1
-
-    # 후행 공백 제거
-    trailing-whitespace:
-      glob: '*.{js,jsx,ts,tsx,json,jsonc,md,yml,yaml}'
-      run: |
-        for file in {staged_files}; do
-          sed -i '' 's/[[:space:]]*$//' "$file"
-        done
-      stage_fixed: true
-
-    # 병합 충돌 검사
-    check-merge-conflict:
-      run: |
-        if git diff --cached --name-only | xargs grep -l -E "^(<<<<<<<|=======|>>>>>>>)" 2>/dev/null; then
-          echo -e "\033[31mERROR: 병합 충돌 마커가 포함된 파일이 있습니다.\033[0m"
-          exit 1
-        fi
-
-    # 민감한 개인키 검출
-    detect-private-key:
-      run: |
-        PRIVATE_KEY_PATTERN="-----BEGIN (RSA|DSA|EC|OPENSSH|PGP) PRIVATE KEY-----"
-        if git diff --cached --name-only | xargs grep -l -E "$PRIVATE_KEY_PATTERN" 2>/dev/null; then
-          echo -e "\033[31mERROR: 민감한 개인키가 포함된 파일이 있습니다.\033[0m"
-          exit 1
-        fi
-```
+> 전체 설정: `lefthook.yml` 참조
 
 ---
 
@@ -587,54 +444,11 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
 
 `src/shared/ui/theme-toggle.tsx`:
 
-```tsx
-'use client';
+- `useTheme` 훅으로 테마 상태 관리
+- `mounted` 상태로 hydration mismatch 방지
+- system → light → dark 순환
 
-import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
-import { LuMonitor, LuMoon, LuSun } from 'react-icons/lu';
-
-export function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Hydration mismatch 방지
-  if (!mounted) {
-    return (
-      <button
-        type="button"
-        className="inline-flex items-center justify-center rounded-md p-2 hover:bg-foreground/10"
-        aria-label="Toggle theme"
-      >
-        <span className="size-5" />
-      </button>
-    );
-  }
-
-  const cycleTheme = () => {
-    if (theme === 'system') setTheme('light');
-    else if (theme === 'light') setTheme('dark');
-    else setTheme('system');
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={cycleTheme}
-      className="inline-flex items-center justify-center rounded-md p-2 hover:bg-foreground/10 transition-colors"
-      aria-label="Toggle theme"
-    >
-      {theme === 'light' && <LuSun className="size-5" />}
-      {theme === 'dark' && <LuMoon className="size-5" />}
-      {theme === 'system' && <LuMonitor className="size-5" />}
-    </button>
-  );
-}
-```
+> 전체 구현: `src/shared/ui/theme-toggle.tsx` 참조
 
 ### 6.4 Shared UI Public API
 
@@ -648,89 +462,36 @@ export { ThemeToggle } from './theme-toggle';
 
 ### 6.5 Tailwind CSS v4 다크 모드 설정
 
-`app/globals.css` (기본 설정):
+`app/globals.css` 핵심 설정:
 
 ```css
-@import 'tailwindcss';
-
 /* next-themes의 data-theme 속성과 연동 - hydration 이슈 방지 */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-[data-theme='dark'] {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
 ```
 
-> **Note**: `attribute="data-theme"` 사용 시 CSS 변수도 `[data-theme="dark"]` 선택자로 정의해야 합니다. `.dark` 클래스 대신 `data-theme` 속성을 사용하면 hydration 에러를 방지할 수 있습니다. ShadCN 설치 후 globals.css는 OKLCH 색상 체계로 업데이트됩니다 (Step 7.6 참조).
+> **Note**: `.dark` 클래스 대신 `data-theme` 속성을 사용하면 hydration 에러를 방지할 수 있습니다.
 
 ### 6.6 Layout에 ThemeProvider 적용
 
-`app/layout.tsx`:
+`app/layout.tsx` 핵심 설정:
 
 ```tsx
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import { ThemeProvider } from '@/shared/ui';
-import './globals.css';
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
-
-export const metadata: Metadata = {
-  title: 'Create Next App',
-  description: 'Generated by create next app',
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="ko" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider
-          attribute="data-theme"
-          defaultTheme="system"
-          enableSystem
-          enableColorScheme
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
-  );
-}
+<html lang="ko" suppressHydrationWarning>
+  <body>
+    <ThemeProvider
+      attribute="data-theme"
+      defaultTheme="system"
+      enableSystem
+      enableColorScheme
+      disableTransitionOnChange
+    >
+      {children}
+    </ThemeProvider>
+  </body>
+</html>
 ```
+
+> 전체 구현: `app/layout.tsx` 참조
 
 ### 6.7 다크 모드 사용법
 
@@ -757,33 +518,19 @@ pnpm dlx shadcn@latest init
 
 ### 7.2 components.json FSD 경로 설정
 
-`components.json`:
+`aliases` 설정으로 ShadCN 컴포넌트가 FSD `shared` 레이어에 설치됨:
 
 ```json
-{
-  "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
-  "rsc": true,
-  "tsx": true,
-  "tailwind": {
-    "config": "",
-    "css": "app/globals.css",
-    "baseColor": "neutral",
-    "cssVariables": true,
-    "prefix": ""
-  },
-  "iconLibrary": "lucide",
-  "aliases": {
-    "components": "@/shared/ui",
-    "utils": "@/shared/lib/utils",
-    "ui": "@/shared/ui",
-    "lib": "@/shared/lib",
-    "hooks": "@/shared/hooks"
-  }
+"aliases": {
+  "components": "@/shared/ui",
+  "utils": "@/shared/lib/utils",
+  "ui": "@/shared/ui",
+  "lib": "@/shared/lib",
+  "hooks": "@/shared/hooks"
 }
 ```
 
-> **핵심**: `aliases` 설정으로 ShadCN 컴포넌트가 FSD `shared` 레이어에 설치됨
+> 전체 설정: `components.json` 참조
 
 ### 7.3 모든 컴포넌트 설치
 
@@ -810,99 +557,19 @@ src/shared/
     └── use-mobile.ts      # 모바일 감지 hook
 ```
 
-### 7.5 globals.css 업데이트 (ShadCN 테마 변수)
+### 7.5 globals.css 업데이트
 
-`app/globals.css`:
+ShadCN 설치 시 `app/globals.css`가 OKLCH 색상 체계로 자동 업데이트됩니다.
 
-```css
-@import 'tailwindcss';
-@import 'tw-animate-css';
+주요 변경:
 
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+- `:root` / `[data-theme='dark']`에 ShadCN 테마 변수 (background, foreground, primary, etc.)
+- `@theme inline`에 Tailwind 색상 매핑
+- `@layer base`에 기본 스타일
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-secondary: var(--secondary);
-  --color-muted: var(--muted);
-  --color-accent: var(--accent);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-card: var(--card);
-  --color-popover: var(--popover);
-  /* Sidebar, Chart 변수들 */
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  /* ... */
-}
+> 전체 설정: `app/globals.css` 참조
 
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  /* ... 전체 컬러 팔레트 */
-}
-
-/* next-themes attribute="data-theme" 사용 시 hydration 이슈 방지 */
-[data-theme='dark'] {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  /* ... 다크 모드 컬러 */
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-```
-
-### 7.6 설치되는 주요 의존성
-
-```json
-{
-  "dependencies": {
-    "@radix-ui/react-accordion": "^1.2.x",
-    "@radix-ui/react-alert-dialog": "^1.1.x",
-    "@radix-ui/react-dialog": "^1.1.x",
-    "@radix-ui/react-dropdown-menu": "^2.1.x",
-    "@radix-ui/react-popover": "^1.1.x",
-    "@radix-ui/react-select": "^2.2.x",
-    "@radix-ui/react-tabs": "^1.1.x",
-    "@radix-ui/react-tooltip": "^1.2.x",
-    "class-variance-authority": "^0.7.x",
-    "clsx": "^2.1.x",
-    "cmdk": "^1.1.x",
-    "date-fns": "^4.1.x",
-    "embla-carousel-react": "^8.6.x",
-    "input-otp": "^1.4.x",
-    "lucide-react": "^0.561.x",
-    "react-day-picker": "^9.12.x",
-    "react-hook-form": "^7.68.x",
-    "react-resizable-panels": "^3.0.x",
-    "recharts": "^2.15.x",
-    "sonner": "^2.0.x",
-    "tailwind-merge": "^3.4.x",
-    "vaul": "^1.1.x",
-    "zod": "^4.1.x",
-    "@hookform/resolvers": "^5.2.x"
-  },
-  "devDependencies": {
-    "tw-animate-css": "^1.4.x"
-  }
-}
-```
-
-### 7.7 컴포넌트 사용 예시
+### 7.6 컴포넌트 사용 예시
 
 ```tsx
 import { Button } from '@/shared/ui/button';
@@ -926,6 +593,103 @@ export function LoginForm() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+```
+
+---
+
+## Step 8: SEO 설정
+
+### 8.1 의존성 설치
+
+```bash
+pnpm add schema-dts
+```
+
+### 8.2 환경 변수 설정
+
+`.env.example`:
+
+```bash
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION="your_verification_code"
+```
+
+### 8.3 파일 구조
+
+| 파일                        | 설명                   |
+| --------------------------- | ---------------------- |
+| `app/layout.tsx`            | 전역 Metadata, OG, 등  |
+| `app/robots.ts`             | 검색엔진 크롤러 규칙   |
+| `app/sitemap.ts`            | 동적 사이트맵 생성     |
+| `app/manifest.ts`           | PWA 웹 앱 매니페스트   |
+| `src/shared/lib/json-ld.tsx` | JSON-LD 구조화 데이터 |
+
+### 8.4 robots.ts
+
+```typescript
+import type { MetadataRoute } from "next";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/admin/"] }],
+    sitemap: `${SITE_URL}/sitemap.xml`,
+  };
+}
+```
+
+### 8.5 sitemap.ts
+
+```typescript
+import type { MetadataRoute } from "next";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  return ["", "/about"].map((route) => ({
+    url: `${SITE_URL}${route}`,
+    lastModified: new Date().toISOString(),
+    changeFrequency: "weekly",
+    priority: route === "" ? 1 : 0.8,
+  }));
+}
+```
+
+### 8.6 manifest.ts
+
+```typescript
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "Site Name",
+    short_name: "Site",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#ffffff",
+    theme_color: "#000000",
+    icons: [
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+  };
+}
+```
+
+### 8.7 JSON-LD 사용법
+
+```tsx
+import { JsonLd, createWebSiteJsonLd } from "@/shared/lib";
+
+export default function Page() {
+  return (
+    <>
+      <JsonLd data={createWebSiteJsonLd()} />
+      {/* 페이지 컨텐츠 */}
+    </>
   );
 }
 ```
