@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/shared/api/supabase";
 import { verifySession } from "@/shared/lib";
@@ -53,6 +54,10 @@ export async function signUpWithEmail(formData: FormData) {
 
   const supabase = await createServerClient();
 
+  // Get the origin from headers for email redirect
+  const headersList = await headers();
+  const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_SITE_URL;
+
   const { error } = await supabase.auth.signUp({
     email: validatedFields.data.email,
     password: validatedFields.data.password,
@@ -60,6 +65,7 @@ export async function signUpWithEmail(formData: FormData) {
       data: {
         full_name: validatedFields.data.fullName,
       },
+      emailRedirectTo: `${origin}/auth/confirm`,
     },
   });
 
@@ -68,7 +74,7 @@ export async function signUpWithEmail(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/auth/sign-up-success");
 }
 
 export async function signOut() {
