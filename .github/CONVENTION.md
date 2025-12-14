@@ -317,6 +317,8 @@ pnpm lint-staged
 
 - [FSD 공식 문서 - Next.js 통합](https://feature-sliced.design/docs/guides/tech/with-nextjs)
 - [Project structure and organization](https://nextjs.org/docs/app/getting-started/project-structure)
+- [Kakaopay FSD 기술 블로그](https://tech.kakaopay.com/post/fsd/)
+- [Velog FSD 포스트](https://velog.io/@clydehan/FSDFeature-Sliced-Design-%EC%99%84%EB%B2%BD-%EA%B0%80%EC%9D%B4%EB%93%9C)
 
 #### 프로젝트 구조
 
@@ -452,14 +454,14 @@ pnpm install -D steiger @feature-sliced/steiger-plugin
 
 ```typescript
 // steiger.config.ts
-import fsd from "@feature-sliced/steiger-plugin";
-import { defineConfig } from "steiger";
+import fsd from '@feature-sliced/steiger-plugin';
+import { defineConfig } from 'steiger';
 
 export default defineConfig([
   ...fsd.configs.recommended,
   {
     // Next.js 라우팅 디렉토리는 제외
-    ignores: ["app/**", "pages/**"],
+    ignores: ['app/**', 'pages/**'],
   },
 ]);
 ```
