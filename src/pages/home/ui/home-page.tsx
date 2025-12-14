@@ -23,13 +23,13 @@ export function HomePage() {
       <SignedOut>
         <div className="flex gap-4">
           <Link
-            href="/sign-in"
+            href="/auth/sign-in"
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
           >
             Sign In
           </Link>
           <Link
-            href="/sign-up"
+            href="/auth/sign-up"
             className="px-4 py-2 border border-input rounded-md hover:bg-accent"
           >
             Sign Up

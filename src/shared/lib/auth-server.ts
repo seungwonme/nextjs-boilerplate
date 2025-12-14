@@ -1,7 +1,4 @@
-import { createRemoteJWKSet, type JWTPayload, jwtVerify } from "jose";
-import { cookies } from "next/headers";
-
-const JWKS = createRemoteJWKSet(new URL(process.env.NEON_AUTH_JWKS_URL || ""));
+import { neonAuth } from "@neondatabase/neon-js/auth/next";
 
 export interface NeonAuthUser {
   id: string;
@@ -12,70 +9,26 @@ export interface NeonAuthUser {
 
 export interface AuthSession {
   user: NeonAuthUser;
-  token: string;
-  payload: JWTPayload;
 }
 
 /**
- * Get the current session from cookies (for Server Components / Server Actions)
+ * Get the current session (for Server Components / Server Actions / API Routes)
  */
 export async function getSession(): Promise<AuthSession | null> {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("neon_auth_token")?.value;
+  const { session, user } = await neonAuth();
 
-    if (!token) {
-      return null;
-    }
-
-    const { payload } = await jwtVerify(token, JWKS);
-
-    return {
-      user: {
-        id: payload.sub || "",
-        email: payload.email as string | undefined,
-        name: payload.name as string | undefined,
-        image: payload.picture as string | undefined,
-      },
-      token,
-      payload,
-    };
-  } catch {
+  if (!session || !user) {
     return null;
   }
-}
 
-/**
- * Verify JWT token from Authorization header (for API Routes)
- */
-export async function verifyToken(
-  request: Request,
-): Promise<AuthSession | null> {
-  try {
-    const authHeader = request.headers.get("Authorization");
-    const token = authHeader?.startsWith("Bearer ")
-      ? authHeader.slice(7)
-      : null;
-
-    if (!token) {
-      return null;
-    }
-
-    const { payload } = await jwtVerify(token, JWKS);
-
-    return {
-      user: {
-        id: payload.sub || "",
-        email: payload.email as string | undefined,
-        name: payload.name as string | undefined,
-        image: payload.picture as string | undefined,
-      },
-      token,
-      payload,
-    };
-  } catch {
-    return null;
-  }
+  return {
+    user: {
+      id: user.id,
+      email: user.email ?? undefined,
+      name: user.name ?? undefined,
+      image: user.image ?? undefined,
+    },
+  };
 }
 
 /**
