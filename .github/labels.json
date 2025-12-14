@@ -1,0 +1,37 @@
+[
+  {
+    "name": "feature",
+    "color": "#38B745",
+    "description": "새로운 기능 추가"
+  },
+  {
+    "name": "fix",
+    "color": "#E8535B",
+    "description": "버그 수정"
+  },
+  {
+    "name": "documentation",
+    "color": "#5E81AC",
+    "description": "문서 작업 (README, 주석 등)"
+  },
+  {
+    "name": "style",
+    "color": "#ECC84B",
+    "description": "코드 로직 영향 없는 스타일 변경 (whitespace, formatting 등)"
+  },
+  {
+    "name": "refactor",
+    "color": "#D66CB2",
+    "description": "기능 변화 없이 코드 구조 재구성 및 리팩토링"
+  },
+  {
+    "name": "test",
+    "color": "#A3DC00",
+    "description": "기존 테스트 수정 및 누락된 테스트 추가"
+  },
+  {
+    "name": "chore",
+    "color": "#9575CD",
+    "description": "코드 수정 없이 프로젝트 유지 보수 작업(빌드 설정, 패키지 업데이트 등)"
+  }
+]

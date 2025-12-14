@@ -1,0 +1,32 @@
+name: '기능 추가'
+description: 기능 추가 Issue 작성 양식입니다.
+labels: ['feature']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        작성 예시 : "[FEAT] 로그인 기능 추가"
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: 기능 설명
+      description: 추가하고자 하는 기능에 대해 구체적으로 적어주세요.
+      placeholder: 설명을 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-outcome
+    attributes:
+      label: 기대 효과
+      description: 이 기능이 도입되었을 때의 기대 효과를 적어주세요.
+      placeholder: 설명을 적어주세요.
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 대체 방안
+      description: 고려하고 있는 대체 방안이 있다면 적어주세요.
+      placeholder: 대체 방안을 적어주세요.
+    validations:
+      required: false

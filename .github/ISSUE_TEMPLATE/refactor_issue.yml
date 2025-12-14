@@ -1,0 +1,24 @@
+name: '코드 리팩터링'
+description: 코드 리팩터링 Issue 작성 양식입니다.
+labels: ['refactor']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        작성 예시 : "[REFACTOR] 함수 반환 값 수정"
+  - type: textarea
+    id: refactor-description
+    attributes:
+      label: 작업 설명
+      description: 어떤 코드를 리팩터링 하려는지 설명해주세요.
+      placeholder: 설명을 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: 리팩터링 이유
+      description: 리팩터링이 필요한 이유를 설명해주세요.
+      placeholder: 이유를 적어주세요.
+    validations:
+      required: false

@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "sequential-thinking": {
+      "command": "bunx",
+      "args": ["@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "context7": {
+      "command": "bunx",
+      "args": ["@upstash/context7-mcp"]
+    },
+    "chrome-devtools": {
+      "command": "bunx",
+      "args": ["chrome-devtools-mcp@latest"]
+    },
+    "shadcn": {
+      "command": "bunx",
+      "args": ["bunx", "shadcn@latest", "mcp"]
+    },
+    "@21st-dev/magic": {
+      "command": "bunx",
+      "args": ["@21st-dev/magic@latest", "API_KEY=\"your_api_key\""]
+    }
+  }
+}

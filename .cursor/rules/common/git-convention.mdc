@@ -1,0 +1,86 @@
+---
+description: Git convention defining branch naming, commit message format, and issue labeling based on GitFlow and Conventional Commits.
+globs:
+alwaysApply: false
+---
+# Git Convention
+
+- 깃 브랜치 전략은 GitFlow를 따르며 이를 기반으로 한 브랜치 네이밍 컨벤션을 사용합니다.
+- 브랜치 네이밍 형식: `type/[branch/]description[-#issue]`
+  - [] 안의 내용은 선택 사항입니다.
+  - `type`: 브랜치 타입
+  - `branch`: 분기한 브랜치명 (e.g. `dev`, `main`)
+  - `description`: 브랜치 설명
+  - `issue`: 관련된 이슈 번호
+
+## Branch Type Description
+
+- **feat** (feature)
+  새로운 기능을 추가할 때 사용합니다.
+  예: `feat/login-#123`
+- **fix** (bug fix)
+  버그를 수정할 때 사용합니다.
+  예: `fix/button-click-#456`
+- **docs** (documentation)
+  문서 작업(README, 주석 등)을 할 때 사용합니다.
+  예: `docs/api-docs-#789`
+- **style** (formatting, missing semi colons, …)
+  코드 스타일(포맷 수정, 세미콜론 추가 등)을 수정할 때 사용합니다. 기능 수정은 포함되지 않습니다.
+  예: `style/css-format-#101`
+- **refactor**
+  코드 리팩토링(기능 변경 없이 코드 구조 개선)을 할 때 사용합니다.
+  예: `refactor/auth-service-#102`
+- **test** (when adding missing tests)
+  테스트 코드를 추가하거나 수정할 때 사용합니다.
+  예: `test/unit-tests-#103`
+- **chore** (maintain)
+  프로젝트 유지 보수 작업(빌드 설정, 패키지 업데이트 등)을 할 때 사용합니다.
+  예: `chore/dependency-update-#104`
+
+## Commit Message Convention
+
+`git config --local commit.template .github/.gitmessage` 명령어를 통해 커밋 메시지 템플릿을 설정할 수 있습니다.
+컨벤션 내용은 AngularJS Git Commit Message Conventions와 Conventional Commits을 기반으로 작성되어 있으며 `.github/.gitmessage` 파일에 작성되어 있습니다.
+
+```sh
+# commit message template
+#=================#
+# <type>(<scope>): <subject>
+# <BLANK LINE>
+# <body>
+# <BLANK LINE>
+# <footer>
+#=================#
+
+
+# Any line of the commit message cannot be longer 100 characters! This allows the message to be easier to read on github as well as in various git tools.
+
+## Subject line
+# Subject line contains succinct description of the change.
+
+# Allowed `<type>`
+# feat (feature): 새로운 기능 추가
+# fix (bug fix): 버그 수정
+# docs (documentation): 문서 작업
+# style (formatting, missing semi colons, …): 코드 스타일 수정
+# refactor: 기능 변경 없이 코드 구조 개선
+# test (when adding missing tests): 테스트 코드 추가 또는 기존 테스트 수정
+# chore (maintain): 빌드, 패키지 매니저 설정 등 코드 수정이 없는 작업
+
+# Allowed `<scope>`
+# Scope could be anything specifying place of the commit change. For example $location, $browser, $compile, $rootScope, ngHref, ngClick, ngView, etc...
+
+# `<subject>` text
+# - use imperative, present tense: “change” not “changed” nor “changes”
+# - don't capitalize first letter
+# - no dot (.) at the end
+
+## Message body
+# - just as in <subject> use imperative, present tense: “change” not “changed” nor “changes”
+# - includes motivation for the change and contrasts with previous behavior
+...
+```
+
+## Issue Label Setting
+
+`github-label-sync --access-token <access_token> --labels .github/labels.json <owner>/<repo>`

@@ -1,0 +1,18 @@
+# https://github.com/kentaro-m/auto-assign-action
+
+name: 'Auto Assign Reviewers'
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  add-reviews:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kentaro-m/auto-assign-action@v2.0.0
+        with:
+          configuration-path: '.github/auto_assign.yml' # Only needed if you use something other than .github/auto_assign.yml

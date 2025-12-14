@@ -1,0 +1,31 @@
+name: Auto Assign PR Creator
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  assign-pr-creator:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign PR creator as assignee
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const creator = context.actor;
+            github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              assignees: [creator]
+            });
+
+# prNumber: The number of the pull request
+# creator: The username of the user who created the pull request
+# github.rest.issues.addAssignees: The GitHub REST API endpoint to add assignees to an issue
+# https://github.com/actions/github-script

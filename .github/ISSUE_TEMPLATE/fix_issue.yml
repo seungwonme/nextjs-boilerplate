@@ -1,0 +1,41 @@
+name: '버그 제보'
+description: 버그 제보 작성 기본 양식입니다.
+labels: ['fix']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        작성 예시 : "[FIX] 로그인 버그 수정"
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: 버그 설명
+      description: 버그가 언제/어떻게 발생했는지 명확하게 적어주세요.
+      placeholder: 설명을 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대했던 정상 동작
+      description: 기대했던 정상적인 동작에 대해서 설명해주세요.
+      placeholder: 설명을 적어주세요.
+    validations:
+      required: false
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: 재현 절차
+      description: 버그를 재현하는 절차를 구체적으로 적어주세요.
+      placeholder: 재현 절차를 적어주세요.
+    validations:
+      required: false
+  - type: textarea
+    id: system-info
+    attributes:
+      label: 시스템 환경
+      description: 현재 버그가 발생한 시스템 환경을 적어주세요.
+      render: shell-script
+      placeholder: OS, 브라우저 등을 적어주세요.
+    validations:
+      required: false
