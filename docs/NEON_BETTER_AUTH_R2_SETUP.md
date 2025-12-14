@@ -2,69 +2,43 @@
 
 ## 개요
 
-이 문서는 Next.js 16 보일러플레이트에 다음 기술 스택을 통합하는 방법을 설명합니다:
-
 - **Neon DB**: Serverless PostgreSQL 데이터베이스
 - **Neon Auth**: Better Auth 기반 관리형 인증 서비스
 - **Cloudflare R2**: S3 호환 오브젝트 스토리지
 
-## 인증 아키텍처 비교
+## 아키텍처
 
 ### Data API vs Server-side 방식
 
 | 항목              | Data API                    | Server-side (현재 방식)                |
 | ----------------- | --------------------------- | -------------------------------------- |
 | **아키텍처**      | Client → Neon REST API → DB | Client → Next.js Server → Drizzle → DB |
-| **JWT 검증**      | Neon이 자동 처리            | JWKS로 직접 검증                       |
+| **JWT 검증**      | Neon이 자동 처리            | `neonAuth()`가 자동 처리               |
 | **데이터 보안**   | RLS 정책 필수               | 서버 코드로 제어                       |
 | **비즈니스 로직** | 클라이언트 또는 DB 함수     | 서버에서 자유롭게                      |
 | **복잡한 쿼리**   | 제한적                      | Drizzle로 자유롭게                     |
-| **개발 속도**     | 빠름 (백엔드 불필요)        | 보통                                   |
-| **유연성**        | 낮음                        | 높음                                   |
 | **유사 서비스**   | Supabase, Firebase          | 전통적인 백엔드                        |
 
-#### 언제 뭘 쓰나?
+**Data API**: 빠른 프로토타이핑, 단순 CRUD, RLS로 충분한 보안
 
-**Data API 추천:**
+**Server-side (현재 설정)**: 복잡한 비즈니스 로직, 외부 API 연동, 세밀한 접근 제어
 
-- 빠른 프로토타이핑
-- 단순 CRUD 앱
-- RLS로 충분한 보안
-
-**Server-side 추천 (현재 설정):**
-
-- 복잡한 비즈니스 로직
-- 외부 API 연동 필요
-- 세밀한 접근 제어
-
-## 설치된 패키지
+## 설치
 
 ```bash
-# Neon DB + Drizzle ORM
-pnpm add @neondatabase/serverless drizzle-orm
-pnpm add -D drizzle-kit dotenv
-
-# Neon Auth
-pnpm add @neondatabase/neon-js jose
-
-# Cloudflare R2 (AWS SDK v3)
+pnpm add @neondatabase/neon-js @neondatabase/serverless drizzle-orm
 pnpm add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
+pnpm add -D drizzle-kit
 ```
 
-## 환경 변수 설정
-
-`.env.local` 파일에 다음 환경 변수를 설정하세요:
+## 환경 변수
 
 ```bash
-# Site Configuration
-NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-
 # Neon Database
 DATABASE_URL="postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require"
 
-# Neon Auth
-NEXT_PUBLIC_NEON_AUTH_URL="https://ep-xxx.neonauth.region.aws.neon.tech/dbname/auth"
-NEON_AUTH_JWKS_URL="https://ep-xxx.neonauth.region.aws.neon.tech/dbname/auth/.well-known/jwks.json"
+# Neon Auth (Neon Console → Project → Branch → Auth → Configuration)
+NEON_AUTH_BASE_URL="https://ep-xxx.neonauth.region.aws.neon.tech/dbname/auth"
 
 # Cloudflare R2
 R2_ACCOUNT_ID="your-cloudflare-account-id"
@@ -74,152 +48,154 @@ R2_BUCKET_NAME="your-bucket-name"
 R2_PUBLIC_URL="https://your-bucket.your-domain.com"
 ```
 
-### Neon Auth URL 확인
-
-Neon Console → Auth 탭에서 확인:
-
-- **Base URL**: `NEXT_PUBLIC_NEON_AUTH_URL`에 사용
-- **JWKS URL**: `NEON_AUTH_JWKS_URL`에 사용
-
-### Neon Console 설정
+## Neon Console 설정
 
 1. **Domains 추가**: `http://localhost:3000` (개발용)
-2. **OAuth providers**: Google/GitHub 등 설정 (Shared keys 사용 가능)
+2. **OAuth providers**: Google/GitHub 등 설정
 
-## 파일 구조
+### OAuth Shared Keys vs Custom Keys
 
-```
-src/
-├── shared/
-│   ├── api/
-│   │   ├── db.ts              # Drizzle + Neon 클라이언트
-│   │   └── storage.ts         # R2 클라이언트
-│   └── lib/
-│       ├── auth-client.ts     # Neon Auth 클라이언트
-│       └── auth-server.ts     # 서버 JWT 검증
-│
-├── features/
-│   └── auth/
-│       ├── ui/
-│       │   └── auth-provider.tsx  # NeonAuthUIProvider
-│       └── index.ts
-│
-├── entities/
-│   └── user/
-│       ├── model/
-│       │   └── schema.ts      # Drizzle 스키마 (커스텀 테이블용)
-│       └── index.ts
-│
-└── app/
-    └── providers.tsx          # AuthProvider 래퍼
+| 항목             | Shared Keys (개발용)               | Custom Keys (프로덕션)       |
+| ---------------- | ---------------------------------- | ---------------------------- |
+| **용도**         | 개발/테스트 전용                   | 프로덕션                     |
+| **동의 화면**    | "Stack Development" 표시           | 자체 앱 이름/브랜딩          |
+| **계정 연동**    | 불가                               | 가능                         |
+| **설정**         | 없음 (기본 제공)                   | OAuth 앱 생성 필요           |
 
-app/
-├── api/
-│   ├── me/
-│   │   └── route.ts           # 보호된 API 예제
-│   └── upload/
-│       └── route.ts           # R2 Presigned URL API
-├── (auth)/
-│   ├── sign-in/page.tsx
-│   └── sign-up/page.tsx
-├── account/
-│   └── [pathname]/page.tsx    # 계정 관리 페이지
-└── layout.tsx                 # Providers 적용
+**프로덕션 OAuth 설정 방법:**
 
-middleware.ts                  # 인증 미들웨어
-drizzle.config.ts              # Drizzle Kit 설정
+1. Google/GitHub 개발자 콘솔에서 OAuth 앱 생성
+2. Callback URL: Neon Console에서 확인 가능
+3. Neon Console → Auth → OAuth providers에서 client_id, client_secret 입력
+
+## Neon Auth 설정
+
+### 1. API Route
+
+```typescript
+// app/api/auth/[...path]/route.ts
+import { authApiHandler } from "@neondatabase/neon-js/auth/next";
+
+export const { GET, POST } = authApiHandler();
 ```
 
-## 주요 파일 설명
+### 2. Middleware
 
-### 1. 데이터베이스 (Neon + Drizzle)
+```typescript
+// middleware.ts
+import { neonAuthMiddleware } from "@neondatabase/neon-js/auth/next";
 
-**`src/shared/api/db.ts`**
+export default neonAuthMiddleware({
+  loginUrl: "/auth/sign-in",
+});
 
-Neon Serverless 드라이버와 Drizzle ORM을 사용한 데이터베이스 클라이언트입니다.
-
-**`src/entities/user/model/schema.ts`**
-
-커스텀 테이블 스키마 (Neon Auth 테이블은 `neon_auth` 스키마에서 자동 관리):
-
-- 사용자 관련 추가 테이블 정의
-- `public` 스키마에 생성
-
-### 2. 인증 (Neon Auth)
-
-**`src/shared/lib/auth-client.ts`**
-
-클라이언트 측 Neon Auth 설정:
-
-```ts
-import { createAuthClient } from '@neondatabase/neon-js/auth';
-
-export const authClient = createAuthClient(
-  process.env.NEXT_PUBLIC_NEON_AUTH_URL!,
-);
+export const config = {
+  matcher: ["/dashboard/:path*", "/account/:path*", "/settings/:path*"],
+};
 ```
 
-**`src/shared/lib/auth-server.ts`**
+### 3. Auth Client
 
-서버 측 JWT 검증:
+```typescript
+// src/shared/lib/auth-client.ts
+"use client";
 
-```ts
-import { createRemoteJWKSet, jwtVerify } from 'jose';
+import { createAuthClient } from "@neondatabase/neon-js/auth/next";
 
-// 세션 조회 (Server Component / Server Action)
-export async function getSession(): Promise<AuthSession | null>;
-
-// 토큰 검증 (API Route - Authorization 헤더)
-export async function verifyToken(
-  request: Request,
-): Promise<AuthSession | null>;
-
-// 인증 필수 (미인증시 에러)
-export async function requireAuth(): Promise<AuthSession>;
+export const authClient = createAuthClient();
 ```
 
-**`src/features/auth/ui/auth-provider.tsx`**
+### 4. Auth Provider
 
-```tsx
-import { NeonAuthUIProvider } from '@neondatabase/neon-js/auth/react';
-import '@neondatabase/neon-js/ui/css';
+```typescript
+// src/features/auth/ui/auth-provider.tsx
+"use client";
+
+import { NeonAuthUIProvider } from "@neondatabase/neon-js/auth/react/ui";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/shared/lib/auth-client";
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+
+  return (
+    <NeonAuthUIProvider
+      authClient={authClient}
+      navigate={(path) => router.push(path)}
+      replace={(path) => router.replace(path)}
+      onSessionChange={() => router.refresh()}
+      emailOTP
+      social={{ providers: ["google"] }}
+      redirectTo="/dashboard"
+    >
+      {children}
+    </NeonAuthUIProvider>
+  );
+}
 ```
 
-### 3. 파일 스토리지 (Cloudflare R2)
+### 5. CSS 설정
 
-**`src/shared/api/storage.ts`**
+```css
+/* app/globals.css */
+@import "tailwindcss";
+@import "@neondatabase/neon-js/ui/css";
+```
 
-R2 스토리지 클라이언트:
+### 6. Auth 페이지
 
-- `getUploadPresignedUrl`: 업로드용 Presigned URL 생성
-- `getDownloadPresignedUrl`: 다운로드용 Presigned URL 생성
-- `deleteObject`: 파일 삭제
+```typescript
+// app/auth/[path]/page.tsx
+"use client";
 
-**`app/api/upload/route.ts`**
+import { AuthView } from "@neondatabase/neon-js/auth/react/ui";
+import { useParams } from "next/navigation";
 
-인증된 사용자만 파일 업로드 가능한 API입니다.
+export default function AuthPage() {
+  const params = useParams();
+  const path = (params?.path as string) ?? "";
 
-### 4. 미들웨어
+  return (
+    <main className="flex min-h-screen items-center justify-center p-4">
+      <AuthView path={path} />
+    </main>
+  );
+}
+```
 
-**`middleware.ts`**
+### 7. Account 페이지
 
-라우트 보호 미들웨어:
+```typescript
+// app/account/[path]/page.tsx
+"use client";
 
-- 보호된 경로: `/dashboard`, `/profile`, `/settings`, `/account`
-- 인증 경로: `/sign-in`, `/sign-up`
+import { AccountView } from "@neondatabase/neon-js/auth/react/ui";
+import { useParams } from "next/navigation";
+
+export default function AccountPage() {
+  const params = useParams();
+  const path = (params?.path as string) ?? "";
+
+  return (
+    <main className="flex min-h-screen items-center justify-center p-4">
+      <AccountView path={path} />
+    </main>
+  );
+}
+```
 
 ## 사용 예시
 
 ### 클라이언트 컴포넌트
 
 ```tsx
-'use client';
+"use client";
 
 import {
   SignedIn,
   SignedOut,
   UserButton,
-} from '@neondatabase/neon-js/auth/react/ui';
+} from "@neondatabase/neon-js/auth/react/ui";
 
 export function Header() {
   return (
@@ -228,7 +204,7 @@ export function Header() {
         <UserButton />
       </SignedIn>
       <SignedOut>
-        <a href="/sign-in">Sign In</a>
+        <a href="/auth/sign-in">Sign In</a>
       </SignedOut>
     </header>
   );
@@ -238,64 +214,49 @@ export function Header() {
 ### Server Component
 
 ```tsx
-import { getSession } from '@/shared/lib';
-import { redirect } from 'next/navigation';
+import { neonAuth } from "@neondatabase/neon-js/auth/next";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-  const session = await getSession();
+  const { session, user } = await neonAuth();
 
-  if (!session) {
-    redirect('/sign-in');
+  if (!session || !user) {
+    redirect("/auth/sign-in");
   }
 
-  return <div>Hello, {session.user.name}</div>;
+  return <div>Hello, {user.name}</div>;
 }
 ```
 
 ### Server Action
 
 ```ts
-'use server';
+"use server";
 
-import { requireAuth } from '@/shared/lib';
-import { db } from '@/shared/api/db';
+import { neonAuth } from "@neondatabase/neon-js/auth/next";
+import { db } from "@/shared/api/db";
 
 export async function createPost(formData: FormData) {
-  const session = await requireAuth();
+  const { user } = await neonAuth();
 
-  // session.user.id로 DB 작업
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
   await db.insert(posts).values({
-    userId: session.user.id,
-    title: formData.get('title') as string,
+    userId: user.id,
+    title: formData.get("title") as string,
   });
 }
 ```
 
-### API Route
-
-```ts
-import { NextResponse } from 'next/server';
-import { getSession } from '@/shared/lib';
-
-export async function GET() {
-  const session = await getSession();
-
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  return NextResponse.json({ user: session.user });
-}
-```
-
-### 파일 업로드 (클라이언트)
+### 파일 업로드 (R2)
 
 ```tsx
 async function uploadFile(file: File) {
-  // 1. Presigned URL 요청
-  const response = await fetch('/api/upload', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       filename: file.name,
       contentType: file.type,
@@ -304,11 +265,10 @@ async function uploadFile(file: File) {
 
   const { presignedUrl, publicUrl } = await response.json();
 
-  // 2. R2에 직접 업로드
   await fetch(presignedUrl, {
-    method: 'PUT',
+    method: "PUT",
     body: file,
-    headers: { 'Content-Type': file.type },
+    headers: { "Content-Type": file.type },
   });
 
   return publicUrl;
@@ -317,7 +277,7 @@ async function uploadFile(file: File) {
 
 ## Neon Auth 스키마
 
-Neon Auth가 `neon_auth` 스키마에 자동으로 생성하는 테이블:
+Neon Auth가 `neon_auth` 스키마에 자동 생성하는 테이블:
 
 | 테이블           | 설명            |
 | ---------------- | --------------- |
@@ -328,21 +288,11 @@ Neon Auth가 `neon_auth` 스키마에 자동으로 생성하는 테이블:
 | `organization`   | 조직 정보       |
 | `member`         | 조직 멤버       |
 | `invitation`     | 초대            |
-| `jwks`           | JWT 키          |
-| `project_config` | 프로젝트 설정   |
 
 커스텀 테이블은 `public` 스키마에 Drizzle로 별도 관리합니다.
 
 ## 참고 문서
 
-- [Neon Auth 공식 문서](https://neon.tech/docs/guides/neon-auth)
-- [Neon 공식 문서](https://neon.tech/docs)
-- [Neon Next.js 가이드](https://neon.com/docs/guides/nextjs)
+- [Neon Auth Next.js 가이드](https://neon.com/docs/auth/quick-start/nextjs)
 - [Drizzle ORM 공식 문서](https://orm.drizzle.team)
 - [Cloudflare R2 공식 문서](https://developers.cloudflare.com/r2)
-
-## TODO
-
-- [ ] 프로필 이미지 업로드 연동
-- [ ] 대시보드 페이지 구현
-- [ ] 커스텀 테이블 마이그레이션

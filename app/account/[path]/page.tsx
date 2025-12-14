@@ -5,11 +5,11 @@ import { useParams } from "next/navigation";
 
 export default function AccountPage() {
   const params = useParams();
-  const pathname = (params?.pathname as string) ?? "";
+  const path = (params?.path as string) ?? "";
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <AccountView pathname={pathname} />
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <AccountView path={path} />
     </div>
   );
 }
