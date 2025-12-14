@@ -1,6 +1,9 @@
 import { type NeonQueryFunction, neon } from "@neondatabase/serverless";
 import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
-import * as schema from "@/entities/user/model/schema";
+import * as fileSchema from "@/entities/file/model/schema";
+import * as userSchema from "@/entities/user/model/schema";
+
+const schema = { ...userSchema, ...fileSchema };
 
 let sql: NeonQueryFunction<false, false>;
 let db: NeonHttpDatabase<typeof schema>;
