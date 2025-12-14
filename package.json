@@ -10,7 +10,10 @@
     "lint:fsd": "steiger ./src",
     "format": "biome format --write .",
     "check": "biome check --write .",
-    "repomix": "bunx repomix"
+    "repomix": "bunx repomix",
+    "db:push": "bunx supabase db push",
+    "db:pull": "bunx supabase db pull --schema public",
+    "gen:types": "bunx supabase gen types typescript --project-id \"${SUPABASE_PROJECT_REF}\" > src/shared/api/supabase/types.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -40,6 +43,8 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.87.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
