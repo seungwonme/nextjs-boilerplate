@@ -1,5 +1,6 @@
 // Shared Lib - Public API
 
+export { requireAuth, verifySession } from "./dal";
 export {
   createArticleJsonLd,
   createBreadcrumbJsonLd,
