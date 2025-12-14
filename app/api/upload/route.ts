@@ -15,9 +15,15 @@ export async function POST(request: Request) {
 
   const presignedUrl = await getUploadPresignedUrl(key, contentType);
 
+  // 비공개 버킷: /api/files/[key]로 접근 (presigned URL 리다이렉트)
+  // 공개 버킷: R2_PUBLIC_URL 직접 사용
+  const publicUrl = process.env.R2_PUBLIC_URL
+    ? `${process.env.R2_PUBLIC_URL}/${key}`
+    : `/api/files/${key}`;
+
   return NextResponse.json({
     presignedUrl,
     key,
-    publicUrl: `${process.env.R2_PUBLIC_URL}/${key}`,
+    publicUrl,
   });
 }
