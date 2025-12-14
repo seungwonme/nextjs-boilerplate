@@ -38,7 +38,8 @@
         "noImgElement": "warn"
       },
       "style": {
-        "noHeadElement": "warn"
+        "noHeadElement": "warn",
+        "noNonNullAssertion": "off"
       }
     }
   },

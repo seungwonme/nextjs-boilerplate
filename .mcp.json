@@ -15,6 +15,16 @@
     "@21st-dev/magic": {
       "command": "bunx",
       "args": ["@21st-dev/magic@latest", "API_KEY=\"{$MAGIC_API_KEY}\""]
+    },
+    "supabase": {
+      "command": "bunx",
+      "args": [
+        "@supabase/mcp-server-supabase@latest",
+        "--project-ref=${SUPABASE_PROJECT_REF}"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+      }
     }
   }
 }
