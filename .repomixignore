@@ -1,0 +1,4 @@
+**/build/**
+**/dist/**
+**/*.test.ts
+node_modules/
