@@ -22,6 +22,7 @@ export * from "./dialog";
 export * from "./drawer";
 export * from "./dropdown-menu";
 export * from "./empty";
+export { ErrorBoundary } from "./error-boundary";
 export * from "./field";
 export * from "./form";
 export * from "./hover-card";
