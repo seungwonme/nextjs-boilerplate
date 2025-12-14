@@ -1,11 +1,11 @@
 "use client";
 
-import { AuthView } from "@daveyplate/better-auth-ui";
+import { AuthView } from "@neondatabase/neon-js/auth/react/ui";
 
 export default function SignUpPage() {
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <AuthView view="SIGN_UP" />
+      <AuthView pathname="sign-up" />
     </div>
   );
 }

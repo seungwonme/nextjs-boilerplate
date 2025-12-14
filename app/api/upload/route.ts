@@ -1,9 +1,9 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getUploadPresignedUrl } from "@/shared/api/storage";
-import { auth } from "@/shared/lib/auth";
+import { getSession } from "@/shared/lib/auth-server";
 
-export async function POST(request: NextRequest) {
-  const session = await auth.api.getSession({ headers: request.headers });
+export async function POST(request: Request) {
+  const session = await getSession();
 
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
