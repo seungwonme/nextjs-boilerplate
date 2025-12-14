@@ -1,10 +1,9 @@
-# Neon DB + Neon Auth + Cloudflare R2 통합 가이드
+# Neon DB + Neon Auth 설정 가이드
 
 ## 개요
 
 - **Neon DB**: Serverless PostgreSQL 데이터베이스
 - **Neon Auth**: Better Auth 기반 관리형 인증 서비스
-- **Cloudflare R2**: S3 호환 오브젝트 스토리지
 
 ## 아키텍처
 
@@ -27,7 +26,6 @@
 
 ```bash
 pnpm add @neondatabase/neon-js @neondatabase/serverless drizzle-orm
-pnpm add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
 pnpm add -D drizzle-kit
 ```
 
@@ -39,13 +37,6 @@ DATABASE_URL="postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslm
 
 # Neon Auth (Neon Console → Project → Branch → Auth → Configuration)
 NEON_AUTH_BASE_URL="https://ep-xxx.neonauth.region.aws.neon.tech/dbname/auth"
-
-# Cloudflare R2
-R2_ACCOUNT_ID="your-cloudflare-account-id"
-R2_ACCESS_KEY_ID="your-r2-access-key-id"
-R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
-R2_BUCKET_NAME="your-bucket-name"
-R2_PUBLIC_URL="https://your-bucket.your-domain.com"
 ```
 
 ## Neon Console 설정
@@ -55,14 +46,14 @@ R2_PUBLIC_URL="https://your-bucket.your-domain.com"
 
 ### OAuth Shared Keys vs Custom Keys
 
-| 항목             | Shared Keys (개발용)               | Custom Keys (프로덕션)       |
-| ---------------- | ---------------------------------- | ---------------------------- |
-| **용도**         | 개발/테스트 전용                   | 프로덕션                     |
-| **동의 화면**    | "Stack Development" 표시           | 자체 앱 이름/브랜딩          |
-| **계정 연동**    | 불가                               | 가능                         |
-| **설정**         | 없음 (기본 제공)                   | OAuth 앱 생성 필요           |
+| 항목           | Shared Keys (개발용)     | Custom Keys (프로덕션) |
+| -------------- | ------------------------ | ---------------------- |
+| **용도**       | 개발/테스트 전용         | 프로덕션               |
+| **동의 화면**  | "Stack Development" 표시 | 자체 앱 이름/브랜딩    |
+| **계정 연동**  | 불가                     | 가능                   |
+| **설정**       | 없음 (기본 제공)         | OAuth 앱 생성 필요     |
 
-**프로덕션 OAuth 설정 방법:**
+**프로덕션 OAuth 설정:**
 
 1. Google/GitHub 개발자 콘솔에서 OAuth 앱 생성
 2. Callback URL: Neon Console에서 확인 가능
@@ -250,44 +241,19 @@ export async function createPost(formData: FormData) {
 }
 ```
 
-### 파일 업로드 (R2)
-
-```tsx
-async function uploadFile(file: File) {
-  const response = await fetch("/api/upload", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      filename: file.name,
-      contentType: file.type,
-    }),
-  });
-
-  const { presignedUrl, publicUrl } = await response.json();
-
-  await fetch(presignedUrl, {
-    method: "PUT",
-    body: file,
-    headers: { "Content-Type": file.type },
-  });
-
-  return publicUrl;
-}
-```
-
 ## Neon Auth 스키마
 
 Neon Auth가 `neon_auth` 스키마에 자동 생성하는 테이블:
 
-| 테이블           | 설명            |
-| ---------------- | --------------- |
-| `user`           | 사용자 정보     |
-| `session`        | 세션 정보       |
-| `account`        | OAuth 계정 연동 |
-| `verification`   | 이메일 인증     |
-| `organization`   | 조직 정보       |
-| `member`         | 조직 멤버       |
-| `invitation`     | 초대            |
+| 테이블         | 설명            |
+| -------------- | --------------- |
+| `user`         | 사용자 정보     |
+| `session`      | 세션 정보       |
+| `account`      | OAuth 계정 연동 |
+| `verification` | 이메일 인증     |
+| `organization` | 조직 정보       |
+| `member`       | 조직 멤버       |
+| `invitation`   | 초대            |
 
 커스텀 테이블은 `public` 스키마에 Drizzle로 별도 관리합니다.
 
@@ -295,4 +261,3 @@ Neon Auth가 `neon_auth` 스키마에 자동 생성하는 테이블:
 
 - [Neon Auth Next.js 가이드](https://neon.com/docs/auth/quick-start/nextjs)
 - [Drizzle ORM 공식 문서](https://orm.drizzle.team)
-- [Cloudflare R2 공식 문서](https://developers.cloudflare.com/r2)
