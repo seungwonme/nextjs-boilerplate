@@ -62,7 +62,6 @@ description: AI-assisted development workflow with TDD, context management, and 
 ### Organization
 - Keep files under 500 lines
 - Follow existing directory structure and naming conventions
-- Reference `.cursor/todo.md`, `.cursor/prd.md` for project context
 
 ## Refactoring
 
@@ -75,10 +74,10 @@ description: AI-assisted development workflow with TDD, context management, and 
 
 ```
 1. Encounter error
-2. Web search / context7 MCP for solution
+2. WebSearchTool / context7 MCP for solution
 3. Apply fix
 4. Test
-5. If same error after 3 attempts → ask user for help
+5. If same error after 3 attempts -> ask user for help
 ```
 
 ## Quality Automation

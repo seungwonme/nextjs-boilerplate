@@ -1,0 +1,77 @@
+[
+  {
+    "time": "16:15:58",
+    "user": "seungwonan",
+    "prompt": "- `gemini -p <prompt>`\n- `claude -p <prompt>`\n- `qwen -p <prompt>`\n- `codex e --skip-git-repo-check <prompt>`\n\n이거 다 해줘"
+  },
+  {
+    "time": "16:16:27",
+    "user": "seungwonan",
+    "prompt": "What is the best programming language for beginners and why?"
+  },
+  {
+    "time": "16:17:36",
+    "user": "seungwonan",
+    "prompt": "<task-notification>\n<task-id>b72e737</task-id>\n<output-file>/private/tmp/claude-501/-Users-seungwonan--claude/tasks/b72e737.output</output-file>\n<status>completed</status>\n<summary>Background command \"Ask Codex\" completed (exit code 0)</summary>\n</task-notification>\nRead the output file to retrieve the result: /private/tmp/claude-501/-Users-seungwonan--claude/tasks/b72e737.output"
+  },
+  {
+    "time": "16:17:43",
+    "user": "seungwonan",
+    "prompt": "<task-notification>\n<task-id>b024d58</task-id>\n<output-file>/private/tmp/claude-501/-Users-seungwonan--claude/tasks/b024d58.output</output-file>\n<status>completed</status>\n<summary>Background command \"Ask Qwen\" completed (exit code 0)</summary>\n</task-notification>\nRead the output file to retrieve the result: /private/tmp/claude-501/-Users-seungwonan--claude/tasks/b024d58.output"
+  },
+  {
+    "time": "16:17:51",
+    "user": "seungwonan",
+    "prompt": "<task-notification>\n<task-id>b5f5acf</task-id>\n<output-file>/private/tmp/claude-501/-Users-seungwonan--claude/tasks/b5f5acf.output</output-file>\n<status>completed</status>\n<summary>Background command \"Ask Gemini\" completed (exit code 0)</summary>\n</task-notification>\nRead the output file to retrieve the result: /private/tmp/claude-501/-Users-seungwonan--claude/tasks/b5f5acf.output"
+  },
+  {
+    "time": "16:17:59",
+    "user": "seungwonan",
+    "prompt": "<task-notification>\n<task-id>b4f08f2</task-id>\n<output-file>/private/tmp/claude-501/-Users-seungwonan--claude/tasks/b4f08f2.output</output-file>\n<status>completed</status>\n<summary>Background command \"Ask Claude\" completed (exit code 0)</summary>\n</task-notification>\nRead the output file to retrieve the result: /private/tmp/claude-501/-Users-seungwonan--claude/tasks/b4f08f2.output"
+  },
+  {
+    "time": "16:18:07",
+    "user": "seungwonan",
+    "prompt": "'/Users/seungwonan/.claude/skills/agent-council'\n\n이 스킬에 반영해달라는 건데"
+  },
+  {
+    "time": "16:19:12",
+    "user": "seungwonan",
+    "prompt": "council 테스트 한번 돌려봐\n한국어로 볼게 "
+  },
+  {
+    "time": "16:20:22",
+    "user": "seungwonan",
+    "prompt": "qwen이 제대로 못했어 "
+  },
+  {
+    "time": "16:25:49",
+    "user": "seungwonan",
+    "prompt": "1. '/Users/seungwonan/.claude/skills/agent-council/bin' 이게 꼭 필요한가?\n2. .jobs 폴더가 아니라 /tmp 폴더 쓰게 해줘 "
+  },
+  {
+    "time": "16:27:09",
+    "user": "seungwonan",
+    "prompt": "/agent-council "
+  },
+  {
+    "time": "16:27:26",
+    "user": "seungwonan",
+    "prompt": "영상 무음 편집기 만들고 싶어"
+  },
+  {
+    "time": "16:31:50",
+    "user": "seungwonan",
+    "prompt": "왜 이렇게 오래 걸리지?"
+  },
+  {
+    "time": "19:24:22",
+    "user": "seungwonan",
+    "prompt": "/agent-council "
+  },
+  {
+    "time": "19:24:49",
+    "user": "seungwonan",
+    "prompt": "/agent-council 행복이란 뭘까?"
+  }
+]

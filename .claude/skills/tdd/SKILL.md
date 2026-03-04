@@ -5,7 +5,7 @@ description: Test-Driven Development following Kent Beck's TDD and Tidy First pr
 
 # Test-Driven Development
 
-Follow the TDD cycle: **Red → Green → Refactor**
+Follow the TDD cycle: **Red -> Green -> Refactor**
 
 ## Core Principles
 
