@@ -7,7 +7,7 @@ description: Supabase development guidelines for Next.js applications. Use when 
 
 ## Quick Reference
 
-- **Auth SSR**: See [bootstrap-auth.md](references/bootstrap-auth.md) for Next.js Auth setup
+- **Auth SSR**: See [bootstrap-auth.md](references/bootstrap-auth.md) for Next.js Auth setup (includes OAuth/Google login)
 - **Migrations**: See [create-migration.md](references/create-migration.md) for migration file conventions
 - **RLS Policies**: See [create-rls-policies.md](references/create-rls-policies.md) for Row Level Security
 - **DB Functions**: See [create-db-functions.md](references/create-db-functions.md) for PostgreSQL functions

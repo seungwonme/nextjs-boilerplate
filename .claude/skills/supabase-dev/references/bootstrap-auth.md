@@ -218,6 +218,161 @@ The implementation will:
 3. Cause authentication loops
 4. Result in security vulnerabilities
 
+## OAUTH (GOOGLE, GITHUB, ETC.) IMPLEMENTATION
+
+### Server Action for OAuth Sign-In
+
+```typescript
+'use server';
+
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/shared/api/supabase/server';
+
+export async function signInWithGoogle() {
+  const supabase = await createClient();
+  const headersList = await headers();
+  const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_SITE_URL;
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (data.url) {
+    redirect(data.url);
+  }
+}
+```
+
+### CRITICAL: OAuth Callback Route Handler
+
+The callback route exchanges the OAuth authorization code for a session.
+
+**COMMON BUG: response 객체를 새로 생성하면 세션 쿠키가 유실된다.**
+
+`exchangeCodeForSession()`은 `setAll` 콜백을 통해 세션 쿠키를 response 객체에 저장한다. redirect URL이 환경에 따라 다르더라도, **반드시 쿠키가 설정된 동일한 response 객체를 반환해야 한다.**
+
+```typescript
+// ❌ WRONG - 쿠키 유실! 세션이 저장되지 않아 로그인 후 바로 로그아웃됨
+const response = NextResponse.redirect(new URL(next, origin));
+// ... exchangeCodeForSession이 response.cookies에 세션 쿠키 설정 ...
+if (isLocalEnv) {
+  return NextResponse.redirect(`${origin}${next}`); // 새 response → 쿠키 없음!
+}
+return response; // 프로덕션만 정상 동작
+
+// ✅ CORRECT - redirect URL을 먼저 결정하고, response는 한 번만 생성
+const forwardedHost = request.headers.get('x-forwarded-host');
+const isLocalEnv = process.env.NODE_ENV === 'development';
+
+let redirectUrl: string;
+if (isLocalEnv) {
+  redirectUrl = `${origin}${next}`;
+} else if (forwardedHost) {
+  redirectUrl = `https://${forwardedHost}${next}`;
+} else {
+  redirectUrl = `${origin}${next}`;
+}
+
+const response = NextResponse.redirect(redirectUrl);
+// ... exchangeCodeForSession이 이 response에 쿠키 설정 ...
+return response; // 항상 같은 response 반환 → 쿠키 유지
+```
+
+### CORRECT OAuth Callback Route (`app/auth/callback/route.ts`)
+
+```typescript
+import { createServerClient } from '@supabase/ssr';
+import { type NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
+  const _next = searchParams.get('next');
+
+  const next = _next?.startsWith('/') && !_next.startsWith('//') ? _next : '/';
+
+  if (code) {
+    const forwardedHost = request.headers.get('x-forwarded-host');
+    const isLocalEnv = process.env.NODE_ENV === 'development';
+
+    let redirectUrl: string;
+    if (isLocalEnv) {
+      redirectUrl = `${origin}${next}`;
+    } else if (forwardedHost) {
+      redirectUrl = `https://${forwardedHost}${next}`;
+    } else {
+      redirectUrl = `${origin}${next}`;
+    }
+
+    const response = NextResponse.redirect(redirectUrl);
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            for (const { name, value, options } of cookiesToSet) {
+              response.cookies.set(name, value, options);
+            }
+          },
+        },
+      },
+    );
+
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (!error) {
+      return response;
+    }
+
+    const errorUrl = new URL('/auth/error', origin);
+    errorUrl.searchParams.set('error', encodeURIComponent(error.message));
+    return NextResponse.redirect(errorUrl);
+  }
+
+  const errorUrl = new URL('/auth/error', origin);
+  errorUrl.searchParams.set('error', encodeURIComponent('No authorization code provided'));
+  return NextResponse.redirect(errorUrl);
+}
+```
+
+### Middleware: OAuth Callback 경로 예외 처리
+
+인증된 사용자가 auth 페이지에 접근하면 리디렉트하는 로직에서, `/auth/callback`과 `/auth/confirm`은 반드시 예외 처리해야 한다:
+
+```typescript
+// middleware에서 인증 사용자의 auth 페이지 리디렉트 시 예외 추가
+if (
+  user &&
+  request.nextUrl.pathname.startsWith('/auth') &&
+  !request.nextUrl.pathname.startsWith('/auth/confirm') &&
+  !request.nextUrl.pathname.startsWith('/auth/callback') // OAuth 콜백 허용
+) {
+  return NextResponse.redirect(url);
+}
+```
+
+### Setup Checklist
+
+1. **Google Cloud Console**: OAuth 2.0 Client ID 생성
+   - Authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`
+2. **Supabase Dashboard**: Authentication > Providers > Google 활성화 후 Client ID/Secret 입력
+3. **Supabase Dashboard**: Authentication > URL Configuration > Redirect URLs에 추가:
+   - `http://localhost:3000/auth/callback` (개발)
+   - `https://yourdomain.com/auth/callback` (프로덕션)
+
 ## AI MODEL RESPONSE TEMPLATE
 
 When asked about Supabase Auth SSR implementation, you MUST:
