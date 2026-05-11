@@ -13,6 +13,9 @@
 # pnpm
 pnpm-lock.yaml
 
+# bun
+bun.lock
+
 # testing
 /coverage
 

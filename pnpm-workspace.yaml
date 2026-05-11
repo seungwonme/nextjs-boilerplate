@@ -1,0 +1,6 @@
+allowBuilds:
+  '@sentry-internal/node-cpu-profiler': true
+  core-js: true
+  esbuild: true
+  lefthook: true
+  sharp: true

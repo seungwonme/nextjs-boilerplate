@@ -9,9 +9,7 @@ import type {
   WebSite,
   WithContext,
 } from "schema-dts";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
-const SITE_NAME = "Next.js Boilerplate";
+import { siteConfig } from "@/shared/config";
 
 type JsonLdType =
   | WithContext<WebSite>
@@ -41,8 +39,8 @@ export function createWebSiteJsonLd(): WithContext<WebSite> {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: SITE_NAME,
-    url: SITE_URL,
+    name: siteConfig.name,
+    url: siteConfig.url,
   };
 }
 
@@ -63,8 +61,8 @@ export function createWebPageJsonLd(
     url: options.url,
     isPartOf: {
       "@type": "WebSite",
-      name: SITE_NAME,
-      url: SITE_URL,
+      name: siteConfig.name,
+      url: siteConfig.url,
     },
   };
 }
@@ -97,8 +95,8 @@ export function createArticleJsonLd(
     },
     publisher: {
       "@type": "Organization",
-      name: SITE_NAME,
-      url: SITE_URL,
+      name: siteConfig.name,
+      url: siteConfig.url,
     },
   };
 }
