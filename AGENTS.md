@@ -8,17 +8,18 @@ pnpm build            # Production build
 pnpm lint             # Biome lint
 pnpm check            # Biome lint + format + auto-fix
 pnpm lint:fsd         # Steiger FSD architecture lint
+pnpm dlx @next/codemod@canary upgrade latest  # Upgrade Next.js with the official codemod
 pnpm dlx shadcn@latest add <component>  # Add shadcn/ui component
 ```
 
 ## Tech Stack
 
-- Next.js 16, React 19, TypeScript 5
-- Tailwind CSS v4 (config in `globals.css` only)
+- Next.js 16, React 19, TypeScript 5 (strict)
+- Tailwind CSS v4 (config in `globals.css` only) + tw-animate-css
 - shadcn/ui (New York style)
-- Biome (linter/formatter)
-- Steiger (FSD linter)
-- next-themes (dark mode)
+- next-themes (dark mode via `data-theme` attribute)
+- Biome (linter/formatter), lefthook (pre-commit), Steiger (FSD linter)
+- schema-dts (typed JSON-LD)
 - Supabase (@supabase/ssr, @supabase/supabase-js)
 
 ## Architecture (FSD)
@@ -147,9 +148,16 @@ export function InteractiveForm() {
 
 ### Icons
 
+기본 보일러플레이트는 `react-icons`만 포함 (theme-toggle용). 추가 아이콘 라이브러리는 필요 시 설치:
+
+```bash
+pnpm add lucide-react
+```
+
 ```typescript
-import { Menu, X } from 'lucide-react'; // 일반 아이콘
+import { Menu, X } from 'lucide-react'; // 설치 후 일반 아이콘
 import { FaGithub } from 'react-icons/fa'; // 브랜드/SNS 아이콘
+import { LuSun } from 'react-icons/lu'; // Lucide 아이콘 (react-icons 경유)
 ```
 
 ### Dark Mode
@@ -180,6 +188,19 @@ import { ErrorBoundary } from '@/shared/ui';
   <YourComponent />
 </ErrorBoundary>
 ```
+
+## Site Config
+
+모든 사이트 메타데이터는 `src/shared/config/site.ts` 단일 소스에서 관리. `app/layout.tsx`, `robots.ts`, `sitemap.ts`, `manifest.ts`, JSON-LD 헬퍼가 모두 이곳을 참조.
+
+```typescript
+import { siteConfig, publicEnv } from '@/shared/config';
+// siteConfig.name, siteConfig.description, siteConfig.url
+// siteConfig.locale, siteConfig.lang, siteConfig.author, siteConfig.ogImage
+// publicEnv.googleSiteVerification 등
+```
+
+타입 안전한 환경 변수 접근은 `src/shared/config/env.ts`의 `publicEnv` 사용.
 
 ## SEO
 
@@ -230,20 +251,22 @@ export const metadata: Metadata = {
 
 ## Key Paths
 
-| 용도             | 경로                               |
-| ---------------- | ---------------------------------- |
-| UI 컴포넌트      | `src/shared/ui/`                   |
-| 유틸리티         | `src/shared/lib/`                  |
-| 훅               | `src/shared/hooks/`                |
-| API 클라이언트   | `src/shared/api/`                  |
-| Supabase         | `src/shared/api/supabase/`         |
-| Auth 기능        | `src/features/auth/`               |
-| 아바타 업로드    | `src/features/upload-avatar/`      |
-| 사용자 엔티티    | `src/entities/user/`               |
-| 테마             | `src/shared/ui/theme-provider.tsx` |
-| shadcn 설정      | `components.json`                  |
-| Tailwind 설정    | `app/globals.css`                  |
-| Supabase 마이그레이션 | `supabase/migrations/`        |
+| 용도                  | 경로                               |
+| --------------------- | ---------------------------------- |
+| UI 컴포넌트           | `src/shared/ui/`                   |
+| 유틸리티              | `src/shared/lib/`                  |
+| 훅                    | `src/shared/hooks/`                |
+| API 클라이언트        | `src/shared/api/`                  |
+| Supabase              | `src/shared/api/supabase/`         |
+| Auth 기능             | `src/features/auth/`               |
+| 아바타 업로드         | `src/features/upload-avatar/`      |
+| 사용자 엔티티         | `src/entities/user/`               |
+| Site Config           | `src/shared/config/site.ts`        |
+| Env (typed)           | `src/shared/config/env.ts`         |
+| 테마                  | `src/shared/ui/theme-provider.tsx` |
+| shadcn 설정           | `components.json`                  |
+| Tailwind 설정         | `app/globals.css`                  |
+| Supabase 마이그레이션 | `supabase/migrations/`             |
 
 ## Supabase Integration
 

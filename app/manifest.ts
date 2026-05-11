@@ -1,15 +1,15 @@
 import type { MetadataRoute } from "next";
+import { siteConfig } from "@/shared/config";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Next.js Boilerplate",
-    short_name: "Next.js",
-    description:
-      "Production-ready Next.js boilerplate with TypeScript, Tailwind CSS, and shadcn/ui",
+    name: siteConfig.name,
+    short_name: siteConfig.name,
+    description: siteConfig.description,
     start_url: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#000000",
+    background_color: siteConfig.themeColor.light,
+    theme_color: siteConfig.themeColor.dark,
     icons: [
       {
         src: "/icon-192.png",
