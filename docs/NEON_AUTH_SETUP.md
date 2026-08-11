@@ -12,7 +12,7 @@
 | 항목              | Data API                    | Server-side (현재 방식)                |
 | ----------------- | --------------------------- | -------------------------------------- |
 | **아키텍처**      | Client → Neon REST API → DB | Client → Next.js Server → Drizzle → DB |
-| **JWT 검증**      | Neon이 자동 처리            | `neonAuth()`가 자동 처리               |
+| **JWT 검증**      | Neon이 자동 처리            | `getAuth().getSession()`이 자동 처리    |
 | **데이터 보안**   | RLS 정책 필수               | 서버 코드로 제어                       |
 | **비즈니스 로직** | 클라이언트 또는 DB 함수     | 서버에서 자유롭게                      |
 | **복잡한 쿼리**   | 제한적                      | Drizzle로 자유롭게                     |
@@ -37,6 +37,7 @@ DATABASE_URL="postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslm
 
 # Neon Auth (Neon Console → Project → Branch → Auth → Configuration)
 NEON_AUTH_BASE_URL="https://ep-xxx.neonauth.region.aws.neon.tech/dbname/auth"
+NEON_AUTH_COOKIE_SECRET="replace-with-a-unique-secret-of-at-least-32-characters"
 ```
 
 ## Neon Console 설정
@@ -65,20 +66,29 @@ NEON_AUTH_BASE_URL="https://ep-xxx.neonauth.region.aws.neon.tech/dbname/auth"
 
 ```typescript
 // app/api/auth/[...path]/route.ts
-import { authApiHandler } from "@neondatabase/neon-js/auth/next";
+import { getAuth } from "@/shared/lib/auth-server";
 
-export const { GET, POST } = authApiHandler();
+type AuthRouteContext = { params: Promise<{ path: string[] }> };
+
+export async function GET(request: Request, context: AuthRouteContext) {
+  return getAuth().handler().GET(request, context);
+}
+
+export async function POST(request: Request, context: AuthRouteContext) {
+  return getAuth().handler().POST(request, context);
+}
 ```
 
-### 2. Middleware
+### 2. Proxy
 
 ```typescript
-// middleware.ts
-import { neonAuthMiddleware } from "@neondatabase/neon-js/auth/next";
+// proxy.ts
+import type { NextRequest } from "next/server";
+import { getAuth } from "@/shared/lib/auth-server";
 
-export default neonAuthMiddleware({
-  loginUrl: "/auth/sign-in",
-});
+export default function proxy(request: NextRequest) {
+  return getAuth().middleware({ loginUrl: "/auth/sign-in" })(request);
+}
 
 export const config = {
   matcher: ["/dashboard/:path*", "/account/:path*", "/settings/:path*"],
@@ -205,17 +215,17 @@ export function Header() {
 ### Server Component
 
 ```tsx
-import { neonAuth } from "@neondatabase/neon-js/auth/next";
 import { redirect } from "next/navigation";
+import { getSession } from "@/shared/lib/auth-server";
 
 export default async function DashboardPage() {
-  const { session, user } = await neonAuth();
+  const session = await getSession();
 
-  if (!session || !user) {
+  if (!session) {
     redirect("/auth/sign-in");
   }
 
-  return <div>Hello, {user.name}</div>;
+  return <div>Hello, {session.user.name}</div>;
 }
 ```
 
@@ -224,15 +234,11 @@ export default async function DashboardPage() {
 ```ts
 "use server";
 
-import { neonAuth } from "@neondatabase/neon-js/auth/next";
-import { db } from "@/shared/api/db";
+import { db } from "@/shared/api";
+import { requireAuth } from "@/shared/lib/auth-server";
 
 export async function createPost(formData: FormData) {
-  const { user } = await neonAuth();
-
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
+  const { user } = await requireAuth();
 
   await db.insert(posts).values({
     userId: user.id,

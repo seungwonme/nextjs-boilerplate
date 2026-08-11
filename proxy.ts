@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { getAuth } from "@/shared/lib/auth-server";
 
-export default function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   return getAuth().middleware({ loginUrl: "/auth/sign-in" })(request);
 }
 
