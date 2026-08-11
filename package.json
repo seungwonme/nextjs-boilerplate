@@ -9,8 +9,7 @@
     "lint": "biome lint .",
     "lint:fsd": "steiger ./src",
     "format": "biome format --write .",
-    "check": "biome check --write .",
-    "repomix": "bunx repomix"
+    "check": "biome check --write ."
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",
