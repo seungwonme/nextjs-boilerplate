@@ -11,7 +11,7 @@
     "council.config.yaml"
   ],
   "dependencies": {
-    "yaml": "^2.8.2"
+    "yaml": "^2.9.0"
   },
   "keywords": [
     "claude-code",
