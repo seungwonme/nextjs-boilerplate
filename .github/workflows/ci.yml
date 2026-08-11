@@ -1,0 +1,48 @@
+name: Verify branches
+
+on:
+  push:
+    branches: [main, supabase, neon-cloudflare-r2]
+  pull_request:
+    branches: [main, supabase, neon-cloudflare-r2]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SITE_URL: https://example.com
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+
+      - name: Enable pinned pnpm
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check formatting and lint
+        run: pnpm validate
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Check FSD boundaries
+        run: pnpm lint:fsd
+
+      - name: Run regression checks
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Audit high-severity vulnerabilities
+        run: pnpm audit --audit-level high
