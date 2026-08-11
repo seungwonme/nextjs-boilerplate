@@ -3,6 +3,10 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { LuMonitor, LuMoon, LuSun } from "react-icons/lu";
+import { getThemeState } from "./theme-state";
+
+const BUTTON_CLASS_NAME =
+  "inline-flex size-9 items-center justify-center rounded-md outline-none transition-colors hover:bg-foreground/10 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:opacity-50";
 
 export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
@@ -12,38 +16,37 @@ export function ThemeToggle() {
     setMounted(true);
   }, []);
 
+  const themeState = getThemeState(theme);
+
   if (!mounted) {
     return (
       <button
         type="button"
-        className="inline-flex items-center justify-center rounded-md p-2 hover:bg-foreground/10"
-        aria-label="Toggle theme"
+        className={BUTTON_CLASS_NAME}
+        aria-label={themeState.label}
+        disabled
       >
-        <span className="size-5" />
+        <LuMonitor className="size-5" aria-hidden="true" />
       </button>
     );
   }
 
-  const cycleTheme = () => {
-    if (theme === "system") {
-      setTheme("light");
-    } else if (theme === "light") {
-      setTheme("dark");
-    } else {
-      setTheme("system");
-    }
-  };
-
   return (
     <button
       type="button"
-      onClick={cycleTheme}
-      className="inline-flex items-center justify-center rounded-md p-2 hover:bg-foreground/10 transition-colors"
-      aria-label="Toggle theme"
+      onClick={() => setTheme(themeState.next)}
+      className={BUTTON_CLASS_NAME}
+      aria-label={themeState.label}
     >
-      {theme === "light" && <LuSun className="size-5" />}
-      {theme === "dark" && <LuMoon className="size-5" />}
-      {theme === "system" && <LuMonitor className="size-5" />}
+      {themeState.current === "light" && (
+        <LuSun className="size-5" aria-hidden="true" />
+      )}
+      {themeState.current === "dark" && (
+        <LuMoon className="size-5" aria-hidden="true" />
+      )}
+      {themeState.current === "system" && (
+        <LuMonitor className="size-5" aria-hidden="true" />
+      )}
     </button>
   );
 }
