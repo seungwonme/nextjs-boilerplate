@@ -59,26 +59,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Define public routes that don't require authentication
-  const publicRoutes = ["/"];
-  const isPublicRoute = publicRoutes.includes(request.nextUrl.pathname);
-
-  // Redirect authenticated users away from auth pages (except /auth/confirm)
-  if (
-    user &&
-    request.nextUrl.pathname.startsWith("/auth") &&
-    !request.nextUrl.pathname.startsWith("/auth/confirm")
-  ) {
-    return redirectWithCookies(request, "/", supabaseResponse);
-  }
-
-  // Redirect unauthenticated users to login page (except public routes and auth pages)
-  if (
-    !user &&
-    !isPublicRoute &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
+  if (!user) {
     return redirectWithCookies(request, "/auth/login", supabaseResponse);
   }
 
