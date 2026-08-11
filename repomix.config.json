@@ -1,9 +1,0 @@
-{
-  "include": ["src/**/*.ts", "src/**/*.tsx", "*.md"],
-  "ignore": {
-    "customPatterns": ["**/*.test.ts", "dist/**", ".next/**"]
-  },
-  "output": {
-    "compress": true
-  }
-}

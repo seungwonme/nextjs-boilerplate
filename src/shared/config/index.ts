@@ -1,4 +1,4 @@
 // Shared Config - Public API
 
-export { publicEnv, type PublicEnv } from "./env";
-export { siteConfig, type SiteConfig } from "./site";
+export { type PublicEnv, publicEnv } from "./env";
+export { type SiteConfig, siteConfig } from "./site";

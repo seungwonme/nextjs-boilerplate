@@ -10,9 +10,6 @@
 !.yarn/releases
 !.yarn/versions
 
-# pnpm
-pnpm-lock.yaml
-
 # bun
 bun.lock
 
@@ -57,8 +54,9 @@ next-env.d.ts
 *.patch
 *.log
 
-# mcp
-.cursor/mcp.json
+# Local agent and MCP configuration
+.claude/
+.cursor/
 .mcp.json
 
 # other

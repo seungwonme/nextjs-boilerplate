@@ -1,323 +1,69 @@
-# Next.js Boilerplate
+# Next.js Boilerplate Development Contract
+
+`README.md` is the setup and verification source of truth. Keep this file
+limited to project-specific coding boundaries.
 
 ## Commands
 
 ```bash
-pnpm dev              # Dev server (localhost:3000)
-pnpm build            # Production build
-pnpm lint             # Biome lint
-pnpm check            # Biome lint + format + auto-fix
-pnpm lint:fsd         # Steiger FSD architecture lint
-pnpm dlx @next/codemod@canary upgrade latest  # Upgrade Next.js with the official codemod
-pnpm dlx shadcn@latest add <component>  # Add shadcn/ui component
+pnpm dev
+pnpm build
+pnpm validate
+pnpm check
+pnpm typecheck
+pnpm lint:fsd
+pnpm test
+pnpm audit --audit-level high
 ```
 
-## Tech Stack
+Use pnpm for dependency changes so `package.json` and `pnpm-lock.yaml` stay in
+sync. Do not hand-edit dependency versions.
 
-- Next.js 16, React 19, TypeScript 5 (strict)
-- Tailwind CSS v4 (config in `globals.css` only) + tw-animate-css
-- shadcn/ui (New York style)
-- next-themes (dark mode via `data-theme` attribute)
-- Biome (linter/formatter), lefthook (pre-commit), Steiger (FSD linter)
-- schema-dts (typed JSON-LD)
-- Supabase (@supabase/ssr, @supabase/supabase-js)
+## Stack
 
-## Architecture (FSD)
+- Next.js 16 App Router and React 19
+- TypeScript 7 with strict mode
+- Supabase SSR authentication
+- Tailwind CSS v4 and next-themes
+- Biome, Steiger, and Lefthook
 
-### Layer Structure
+## Architecture
 
-```
-app/                  # Next.js App Router (routing only)
-src/
-├── app/              # Providers, global config
-├── pages/            # Page composition
-├── widgets/          # Header, Footer, Sidebar
-├── features/         # auth, checkout, search
-├── entities/         # user, product, order
-└── shared/           # ui, lib, api, hooks
+The root `app/` directory contains routing only. Compose pages under
+`src/pages` and keep dependencies moving downward:
+
+```text
+app -> pages -> widgets -> features -> entities -> shared
 ```
 
-### Import Rules
+- Import slices through their `index.ts` public API.
+- Do not cross-import between slices in the same layer.
+- Put feature actions in `src/features/<slice>/api`.
+- Put entity operations in `src/entities/<slice>/api`.
+- Export provider clients through `src/shared/api/index.ts`.
 
-```typescript
-// 의존성 방향: app → pages → widgets → features → entities → shared
-// 같은 레이어 내 cross-import 금지
+## Supabase
 
-// ✅ Correct - index.ts를 통한 import
-import { UserCard } from '@/entities/user';
-import { Button } from '@/shared/ui';
-
-// ❌ Wrong - 내부 구조 직접 접근
-import { UserCard } from '@/entities/user/ui/user-card';
-```
-
-### Next.js + FSD Integration
-
-```typescript
-// app/example/page.tsx
-export { ExamplePage as default } from '@/pages/example';
-
-// src/pages/example/index.ts
-export { ExamplePage } from './ui/example-page';
-
-// src/pages/example/ui/example-page.tsx
-import { Header } from '@/widgets/header';
-import { AuthForm } from '@/features/auth';
-import { Button } from '@/shared/ui';
-```
-
-### Server Actions
-
-```typescript
-// src/features/auth/api/actions.ts
-'use server';
-
-import { verifySession } from '@/shared/lib';
-import { signInSchema } from '../model/schemas';
-
-export async function signIn(formData: FormData) {
-  // 1. Validate input
-  const validatedFields = signInSchema.safeParse({
-    email: formData.get('email'),
-    password: formData.get('password'),
-  });
-
-  if (!validatedFields.success) {
-    return { error: validatedFields.error.issues[0]?.message };
-  }
-
-  // 2. Authenticate (if required for this action)
-  const { isAuth } = await verifySession();
-
-  if (!isAuth) {
-    return { error: 'Unauthorized' };
-  }
-
-  // 3. Perform action
-  /* ... */
-}
-
-// 배치 위치:
-// - Feature-specific: src/features/[feature]/api/actions.ts
-// - Entity-specific: src/entities/[entity]/api/actions.ts
-// - Shared: src/shared/api/actions.ts
-```
-
-### Data Access Layer (DAL)
-
-```typescript
-// src/shared/lib/dal.ts - 인증 검증
-import { verifySession, requireAuth } from '@/shared/lib';
-
-// Server Components에서
-const { isAuth, user } = await verifySession();
-
-// Server Actions에서
-const user = await requireAuth(); // throw error if not authenticated
-```
+- Use `@supabase/ssr` with `getAll` and `setAll` cookie adapters.
+- Do not use deprecated `@supabase/auth-helpers-nextjs` clients.
+- Keep browser, server, and proxy clients request-scoped.
+- Use operation-specific RLS policies targeted to `authenticated`; enforce
+  ownership with `auth.uid()` in both `using` and `with check` where needed.
+- Use `NEXT_PUBLIC_SUPABASE_URL` and
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for runtime configuration.
 
 ## Conventions
 
-### Naming
+- Files use kebab-case; components use PascalCase; functions use camelCase.
+- Server Components are the default. Add `"use client"` only for browser
+  state, effects, or event handlers.
+- Keep environment validation at the server or build boundary. Production
+  requires `NEXT_PUBLIC_SITE_URL` to be a public HTTP(S) origin.
+- Preserve keyboard focus, accessible names, input validation, and refreshed
+  session cookies when changing UI or authentication flows.
+- Add shadcn/ui source and dependencies only when used.
+- Run `pnpm validate`, `pnpm typecheck`, `pnpm lint:fsd`, `pnpm test`, and a
+  production build before committing.
 
-| 대상            | 규칙       | 예시            |
-| --------------- | ---------- | --------------- |
-| 파일명          | kebab-case | `user-card.tsx` |
-| 컴포넌트        | PascalCase | `UserCard`      |
-| 함수/변수       | camelCase  | `handleClick`   |
-| 타입/인터페이스 | PascalCase | `UserProfile`   |
-
-### Components
-
-```typescript
-// Server Component (기본)
-export function UserCard() {
-  /* ... */
-}
-```
-
-```typescript
-// Client Component (상호작용 필요 시)
-// 파일 최상단에 directive 선언 필수
-"use client";
-
-export function InteractiveForm() {
-  /* ... */
-}
-```
-
-### Icons
-
-기본 보일러플레이트는 `react-icons`만 포함 (theme-toggle용). 추가 아이콘 라이브러리는 필요 시 설치:
-
-```bash
-pnpm add lucide-react
-```
-
-```typescript
-import { Menu, X } from 'lucide-react'; // 설치 후 일반 아이콘
-import { FaGithub } from 'react-icons/fa'; // 브랜드/SNS 아이콘
-import { LuSun } from 'react-icons/lu'; // Lucide 아이콘 (react-icons 경유)
-```
-
-### Dark Mode
-
-```tsx
-<div className="bg-white dark:bg-black text-black dark:text-white">Content</div>
-```
-
-### Error Handling
-
-```tsx
-import { ErrorBoundary } from '@/shared/ui';
-
-// Wrap components that might throw errors
-<ErrorBoundary>
-  <YourComponent />
-</ErrorBoundary>
-
-// Custom fallback
-<ErrorBoundary
-  fallback={(error, reset) => (
-    <div>
-      <p>Error: {error.message}</p>
-      <button onClick={reset}>Retry</button>
-    </div>
-  )}
->
-  <YourComponent />
-</ErrorBoundary>
-```
-
-## Site Config
-
-모든 사이트 메타데이터는 `src/shared/config/site.ts` 단일 소스에서 관리. `app/layout.tsx`, `robots.ts`, `sitemap.ts`, `manifest.ts`, JSON-LD 헬퍼가 모두 이곳을 참조.
-
-```typescript
-import { siteConfig, publicEnv } from '@/shared/config';
-// siteConfig.name, siteConfig.description, siteConfig.url
-// siteConfig.locale, siteConfig.lang, siteConfig.author, siteConfig.ogImage
-// publicEnv.googleSiteVerification 등
-```
-
-타입 안전한 환경 변수 접근은 `src/shared/config/env.ts`의 `publicEnv` 사용.
-
-## SEO
-
-### 환경 변수
-
-```bash
-# .env.local
-NEXT_PUBLIC_SITE_URL=https://yourdomain.com
-NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=your-google-verification-code
-```
-
-### 파일 구조
-
-| 파일              | 설명                              |
-| ----------------- | --------------------------------- |
-| `app/layout.tsx`  | 전역 Metadata, Open Graph, 등     |
-| `app/robots.ts`   | 검색엔진 크롤러 규칙              |
-| `app/sitemap.ts`  | 동적 사이트맵 생성                |
-| `app/manifest.ts` | PWA 웹 앱 매니페스트              |
-
-### JSON-LD 구조화 데이터
-
-```typescript
-import { JsonLd, createWebSiteJsonLd, createArticleJsonLd } from '@/shared/lib';
-
-// 페이지에서 사용
-export default function Page() {
-  return (
-    <>
-      <JsonLd data={createWebSiteJsonLd()} />
-      {/* 페이지 컨텐츠 */}
-    </>
-  );
-}
-```
-
-### 페이지별 Metadata
-
-```typescript
-// app/about/page.tsx
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'About', // "About | Site Name" 형식으로 출력
-  description: 'About page description',
-};
-```
-
-## Key Paths
-
-| 용도                  | 경로                               |
-| --------------------- | ---------------------------------- |
-| UI 컴포넌트           | `src/shared/ui/`                   |
-| 유틸리티              | `src/shared/lib/`                  |
-| 훅                    | `src/shared/hooks/`                |
-| API 클라이언트        | `src/shared/api/`                  |
-| Supabase              | `src/shared/api/supabase/`         |
-| Auth 기능             | `src/features/auth/`               |
-| 아바타 업로드         | `src/features/upload-avatar/`      |
-| 사용자 엔티티         | `src/entities/user/`               |
-| Site Config           | `src/shared/config/site.ts`        |
-| Env (typed)           | `src/shared/config/env.ts`         |
-| 테마                  | `src/shared/ui/theme-provider.tsx` |
-| shadcn 설정           | `components.json`                  |
-| Tailwind 설정         | `app/globals.css`                  |
-| Supabase 마이그레이션 | `supabase/migrations/`             |
-
-## Supabase Integration
-
-### Quick Start
-
-```bash
-# 1. 환경 변수 설정 (.env.local)
-NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
-
-# 2. 마이그레이션 적용
-pnpm dlx supabase db push
-
-# 3. 타입 생성
-pnpm dlx supabase gen types typescript --local > src/shared/api/supabase/types.ts
-```
-
-### 클라이언트 사용
-
-```typescript
-// Client Component
-"use client";
-import { createClient } from '@/shared/api/supabase';
-
-// Server Component/Action
-import { createServerClient } from '@/shared/api/supabase';
-```
-
-### 주요 기능
-
-- **인증 (Auth)**: `src/features/auth/`
-  - SignInForm, SignUpForm, SignOutButton
-  - signInWithEmail, signUpWithEmail, signOut, getUser
-
-- **사용자 프로필 (User Profile)**: `src/entities/user/`
-  - UserAvatar
-  - getProfile, updateProfile
-
-- **아바타 업로드 (Avatar Upload)**: `src/features/upload-avatar/`
-  - AvatarUpload
-  - uploadAvatar, deleteAvatar
-
-### 데이터베이스 스키마
-
-- **profiles** 테이블: 사용자 프로필 정보
-- **RLS 정책**: 자동으로 적용됨
-- **자동 트리거**: 회원가입 시 프로필 자동 생성
-
-### Storage
-
-- **avatars** 버킷: 사용자 아바타 이미지
-- **RLS 정책**: 공개 읽기, 인증된 사용자만 업로드/수정/삭제
-
-자세한 내용: [docs/SUPABASE_INTEGRATION.md](./docs/SUPABASE_INTEGRATION.md)
+Runner-specific skills, prompt history, MCP configuration, and personal paths
+do not belong in the public template.

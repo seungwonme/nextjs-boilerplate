@@ -2,11 +2,11 @@
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "noImplicitAny": false, // any 타입 허용
+    "allowJs": false,
+    "noImplicitAny": true,
     "skipLibCheck": true,
-    "strict": false, // 엄격한 타입 검사 비활성화
-    "forceConsistentCasingInFileNames": false, // 파일 이름의 대소문자 일관성 비활성화
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -28,8 +28,7 @@
       "@/features/*": ["./src/features/*"],
       "@/entities/*": ["./src/entities/*"],
       "@/shared/*": ["./src/shared/*"]
-    },
-    "strictNullChecks": true
+    }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts", "**/*.mts"],
   "exclude": ["node_modules"]
