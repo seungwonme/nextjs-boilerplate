@@ -47,10 +47,10 @@ app -> pages -> widgets -> features -> entities -> shared
 - Use `@supabase/ssr` with `getAll` and `setAll` cookie adapters.
 - Do not use deprecated `@supabase/auth-helpers-nextjs` clients.
 - Keep browser, server, and proxy clients request-scoped.
-- Use operation-specific RLS policies targeted to `authenticated`; enforce
-  ownership with `auth.uid()` in both `using` and `with check` where needed.
 - Use `NEXT_PUBLIC_SUPABASE_URL` and
   `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for runtime configuration.
+- This branch includes Auth only. Add database, profile, and Storage examples
+  only with a real consumer and operation-specific RLS policies.
 
 ## Conventions
 

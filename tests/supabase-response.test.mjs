@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   copyCookies,
   getAuthSuccessUrl,
+  getEmailOtpParams,
 } from "../src/shared/api/supabase/response.ts";
 
 test("auth success redirects ignore untrusted destinations", () => {
@@ -16,6 +17,32 @@ test("auth success redirects ignore untrusted destinations", () => {
     const requestUrl = new URL("https://app.example/auth/confirm");
     requestUrl.searchParams.set("next", next);
     assert.equal(getAuthSuccessUrl(requestUrl).href, "https://app.example/");
+  }
+});
+
+test("email confirmation accepts only the documented OTP contract", () => {
+  assert.deepEqual(
+    getEmailOtpParams(
+      "https://app.example/auth/confirm?token_hash=secret&type=email",
+    ),
+    { token_hash: "secret", type: "email" },
+  );
+  assert.deepEqual(
+    getEmailOtpParams(
+      "https://app.example/auth/confirm?token_hash=secret&type=magiclink",
+    ),
+    { token_hash: "secret", type: "magiclink" },
+  );
+
+  for (const query of [
+    "token_hash=secret&type=recovery",
+    "token_hash=secret&type=signup",
+    "type=email",
+  ]) {
+    assert.equal(
+      getEmailOtpParams(`https://app.example/auth/confirm?${query}`),
+      null,
+    );
   }
 });
 

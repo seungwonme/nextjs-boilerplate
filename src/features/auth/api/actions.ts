@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/shared/api";
+import { publicEnv } from "@/shared/config";
 import { verifySession } from "@/shared/lib";
 import { signInSchema, signUpSchema } from "../model/schemas";
 
@@ -41,7 +41,6 @@ export async function signUpWithEmail(formData: FormData) {
   const validatedFields = signUpSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
-    fullName: formData.get("fullName"),
   });
 
   // If validation fails, return errors
@@ -54,18 +53,11 @@ export async function signUpWithEmail(formData: FormData) {
 
   const supabase = await createServerClient();
 
-  // Get the origin from headers for email redirect
-  const headersList = await headers();
-  const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_SITE_URL;
-
   const { error } = await supabase.auth.signUp({
     email: validatedFields.data.email,
     password: validatedFields.data.password,
     options: {
-      data: {
-        full_name: validatedFields.data.fullName,
-      },
-      emailRedirectTo: `${origin}/auth/confirm`,
+      emailRedirectTo: `${publicEnv.siteUrl}/auth/confirm`,
     },
   });
 

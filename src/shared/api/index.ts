@@ -1,8 +1,8 @@
-export type { Database, Json } from "./supabase";
 export {
   copyCookies,
   createClient,
   createServerClient,
   getAuthSuccessUrl,
+  getEmailOtpParams,
   updateSession,
 } from "./supabase";
