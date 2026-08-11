@@ -22,8 +22,6 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   keywords: [...siteConfig.keywords],
-  authors: [{ name: siteConfig.author.name, url: siteConfig.author.url }],
-  creator: siteConfig.author.name,
   openGraph: {
     type: "website",
     locale: siteConfig.locale,

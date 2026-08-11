@@ -12,7 +12,7 @@
     "check": "biome check --write .",
     "validate": "biome check .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/*.test.ts",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/*.test.mjs",
     "prepare": "lefthook install"
   },
   "dependencies": {
