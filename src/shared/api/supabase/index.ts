@@ -1,4 +1,5 @@
 export { createClient } from "./client";
+export { handleAuthConfirmation } from "./confirm";
 export { updateSession } from "./middleware";
 export {
   copyCookies,

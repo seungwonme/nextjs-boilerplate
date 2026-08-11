@@ -1,2 +1,2 @@
-export { requireAuth, verifySession } from "./dal";
+export { verifySession } from "./dal";
 export { cn } from "./utils";

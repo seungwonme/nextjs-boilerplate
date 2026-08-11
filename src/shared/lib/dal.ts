@@ -33,17 +33,3 @@ export const verifySession = cache(async (): Promise<Session> => {
 
   return { isAuth: true, user };
 });
-
-/**
- * Get current user or throw error
- * Use this when you need to enforce authentication
- */
-export async function requireAuth(): Promise<User> {
-  const { isAuth, user } = await verifySession();
-
-  if (!isAuth || !user) {
-    throw new Error("Unauthorized");
-  }
-
-  return user;
-}

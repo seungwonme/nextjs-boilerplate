@@ -12,16 +12,20 @@ export function SignInForm() {
     setLoading(true);
     setError(null);
 
-    const result = await signInWithEmail(formData);
-
-    if (result?.error) {
-      setError(result.error);
+    try {
+      const result = await signInWithEmail(formData);
+      if (result?.error) {
+        setError(result.error);
+      }
+    } catch {
+      setError("Unable to sign in. Please try again.");
+    } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form action={handleSubmit} className="space-y-4">
+    <form action={handleSubmit} className="space-y-4" aria-busy={loading}>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -45,7 +49,13 @@ export function SignInForm() {
       </div>
 
       {error && (
-        <div className="text-sm text-red-500 dark:text-red-400">{error}</div>
+        <p
+          role="alert"
+          aria-live="assertive"
+          className="text-sm text-red-500 dark:text-red-400"
+        >
+          {error}
+        </p>
       )}
 
       <Button type="submit" className="w-full" disabled={loading}>

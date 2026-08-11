@@ -1,5 +1,4 @@
 export {
-  getUser,
   signInWithEmail,
   signOut,
   signUpWithEmail,

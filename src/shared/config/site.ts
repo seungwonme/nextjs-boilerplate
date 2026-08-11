@@ -1,4 +1,4 @@
-import { publicEnv } from "./env";
+import { publicEnv } from "./env.ts";
 
 export const siteConfig = {
   name: "Next.js Boilerplate",

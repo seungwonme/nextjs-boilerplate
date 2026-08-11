@@ -4,5 +4,6 @@ export {
   createServerClient,
   getAuthSuccessUrl,
   getEmailOtpParams,
+  handleAuthConfirmation,
   updateSession,
 } from "./supabase";
