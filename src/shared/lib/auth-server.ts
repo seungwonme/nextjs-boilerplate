@@ -1,4 +1,26 @@
-import { neonAuth } from "@neondatabase/neon-js/auth/next";
+import { createNeonAuth } from "@neondatabase/neon-js/auth/next/server";
+
+let auth: ReturnType<typeof createNeonAuth> | undefined;
+
+export function getAuth() {
+  const baseUrl = process.env.NEON_AUTH_BASE_URL;
+  const secret = process.env.NEON_AUTH_COOKIE_SECRET;
+
+  if (!baseUrl || !secret) {
+    throw new Error(
+      "NEON_AUTH_BASE_URL and NEON_AUTH_COOKIE_SECRET are required",
+    );
+  }
+
+  auth ??= createNeonAuth({
+    baseUrl,
+    cookies: {
+      secret,
+    },
+  });
+
+  return auth;
+}
 
 export interface NeonAuthUser {
   id: string;
@@ -15,11 +37,13 @@ export interface AuthSession {
  * Get the current session (for Server Components / Server Actions / API Routes)
  */
 export async function getSession(): Promise<AuthSession | null> {
-  const { session, user } = await neonAuth();
+  const { data: session } = await getAuth().getSession();
 
-  if (!session || !user) {
+  if (!session?.user) {
     return null;
   }
+
+  const { user } = session;
 
   return {
     user: {

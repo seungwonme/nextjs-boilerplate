@@ -1,3 +1,11 @@
-import { authApiHandler } from "@neondatabase/neon-js/auth/next";
+import { getAuth } from "@/shared/lib/auth-server";
 
-export const { GET, POST } = authApiHandler();
+type AuthRouteContext = { params: Promise<{ path: string[] }> };
+
+export async function GET(request: Request, context: AuthRouteContext) {
+  return getAuth().handler().GET(request, context);
+}
+
+export async function POST(request: Request, context: AuthRouteContext) {
+  return getAuth().handler().POST(request, context);
+}

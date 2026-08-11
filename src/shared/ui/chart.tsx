@@ -118,7 +118,7 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+}: RechartsPrimitive.TooltipContentProps &
   React.ComponentProps<"div"> & {
     hideLabel?: boolean;
     hideIndicator?: boolean;
@@ -188,7 +188,12 @@ function ChartTooltipContent({
 
             return (
               <div
-                key={item.dataKey}
+                key={
+                  typeof item.dataKey === "string" ||
+                  typeof item.dataKey === "number"
+                    ? item.dataKey
+                    : index
+                }
                 className={cn(
                   "[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5",
                   indicator === "dot" && "items-center",
@@ -259,7 +264,10 @@ function ChartLegendContent({
   verticalAlign = "bottom",
   nameKey,
 }: React.ComponentProps<"div"> &
-  Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
+  Pick<
+    RechartsPrimitive.DefaultLegendContentProps,
+    "payload" | "verticalAlign"
+  > & {
     hideIcon?: boolean;
     nameKey?: string;
   }) {
@@ -349,9 +357,9 @@ function getPayloadConfigFromPayload(
 
 export {
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
+  ChartTooltip,
+  ChartTooltipContent,
 };

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { files } from "@/entities/file";
-import { db } from "@/shared/api/db";
+import { db } from "@/shared/api";
 import { deleteObject, getDownloadPresignedUrl } from "@/shared/api/storage";
 import { getSession } from "@/shared/lib/auth-server";
 

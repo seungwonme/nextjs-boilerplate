@@ -1,8 +1,9 @@
-import { neonAuthMiddleware } from "@neondatabase/neon-js/auth/next";
+import type { NextRequest } from "next/server";
+import { getAuth } from "@/shared/lib/auth-server";
 
-export default neonAuthMiddleware({
-  loginUrl: "/auth/sign-in",
-});
+export default function middleware(request: NextRequest) {
+  return getAuth().middleware({ loginUrl: "/auth/sign-in" })(request);
+}
 
 export const config = {
   matcher: [

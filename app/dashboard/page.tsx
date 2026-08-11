@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   description: "파일을 업로드하고 관리하세요",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
   const session = await getSession();
 
