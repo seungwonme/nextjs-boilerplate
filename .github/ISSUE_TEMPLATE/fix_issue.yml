@@ -1,6 +1,5 @@
 name: '버그 제보'
 description: 버그 제보 작성 기본 양식입니다.
-labels: ['fix']
 body:
   - type: markdown
     attributes:

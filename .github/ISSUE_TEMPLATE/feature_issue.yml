@@ -1,6 +1,5 @@
 name: '기능 추가'
 description: 기능 추가 Issue 작성 양식입니다.
-labels: ['feature']
 body:
   - type: markdown
     attributes:

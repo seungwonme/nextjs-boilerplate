@@ -1,6 +1,5 @@
 name: '코드 리팩터링'
 description: 코드 리팩터링 Issue 작성 양식입니다.
-labels: ['refactor']
 body:
   - type: markdown
     attributes:
