@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { SignOutButton } from "@/features/auth";
-import { createClient } from "@/shared/api/supabase/server";
+import { createServerClient } from "@/shared/api";
 import { Button, ThemeToggle } from "@/shared/ui";
 
 export async function HomePage() {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 

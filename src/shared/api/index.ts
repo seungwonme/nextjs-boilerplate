@@ -1,10 +1,4 @@
-export type {
-  Database,
-  Insertable,
-  Json,
-  Tables,
-  Updatable,
-} from "./supabase";
+export type { Database, Json } from "./supabase";
 export {
   copyCookies,
   createClient,

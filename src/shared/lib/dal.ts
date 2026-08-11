@@ -2,7 +2,7 @@
 
 import type { User } from "@supabase/supabase-js";
 import { cache } from "react";
-import { createServerClient } from "@/shared/api/supabase";
+import { createServerClient } from "@/shared/api";
 
 export interface Session {
   isAuth: boolean;

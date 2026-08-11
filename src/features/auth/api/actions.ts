@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/shared/api/supabase";
+import { createServerClient } from "@/shared/api";
 import { verifySession } from "@/shared/lib";
 import { signInSchema, signUpSchema } from "../model/schemas";
 
